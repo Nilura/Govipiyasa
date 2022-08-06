@@ -1,8 +1,7 @@
 
 import 'package:animated_splash_screen/animated_splash_screen.dart';
 import 'package:blogapp/Pages/HomePage.dart';
-import 'package:firebase_core/firebase_core.dart';
-import 'package:firebase_core/firebase_core.dart';
+
 
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
@@ -13,15 +12,12 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'Darkmode/ThemeManager.dart';
 
 import 'Pages/LoadingPage.dart';
-
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 import 'Splash/page/onboarding_page.dart';
-
 void main() async{
   WidgetsFlutterBinding.ensureInitialized();
-
-  await Firebase.initializeApp();
+ // await Firebase.initializeApp();
   return runApp(ChangeNotifierProvider<ThemeNotifier>(
     create: (_) => new ThemeNotifier(),
     child: MyApp(),

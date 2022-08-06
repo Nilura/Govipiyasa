@@ -1,6 +1,10 @@
 import 'dart:convert';
 
+import 'package:blogapp/Architectureprofile/constants.dart';
 import 'package:blogapp/LoadingScreen/loading.dart';
+import 'package:blogapp/LoadingScreen/loading2.dart';
+import 'package:blogapp/LoadingScreen/loading3.dart';
+import 'package:blogapp/Search/HomeScreen.dart';
 import 'package:translator/translator.dart';
 import 'package:blogapp/Forum/Forumcategory.dart';
 import 'package:blogapp/Information/infoui.dart';
@@ -40,7 +44,7 @@ class _HomeScreenState extends State<HomeScreen>
 
   Translation out;
   var index=0;
-  String txt = "නිෂ්පාදන";
+  String txt = "Product";
 
   //getting text
 
@@ -144,17 +148,12 @@ class _HomeScreenState extends State<HomeScreen>
                    );
                  } else{
                    return SizedBox.shrink();
-                 }
-
-
-                },
-              ),
-            ),
+                 }},),),
             SizedBox(height: 10.0),
             GestureDetector(
               child: Container(
-                height: 150.0,
-                decoration: BoxDecoration(
+                height: 120.0,
+        /*        decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(15.0),
                   gradient: LinearGradient(
                     colors: [
@@ -165,7 +164,7 @@ class _HomeScreenState extends State<HomeScreen>
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ),
-                ),
+                ),*/
                 child: Card(
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(15.0),
@@ -189,9 +188,9 @@ class _HomeScreenState extends State<HomeScreen>
                         width: 70.0,
                       ),
                       Container(
-                        child: Text(txt,
+                        child: Text("Products",
                             style:
-                                TextStyle(color: Colors.green, fontSize: 30)),
+                                TextStyle(color: Colors.black, fontSize: 30)),
                       ),
                     ],
                   ),
@@ -199,14 +198,14 @@ class _HomeScreenState extends State<HomeScreen>
               ),
               onTap: () {
                 Navigator.push(
-                    context, MaterialPageRoute(builder: (context) => MyApp1()));
+                    context, MaterialPageRoute(builder: (context) => Searchitems()));
               },
             ),
             SizedBox(height: 10.0),
             GestureDetector(
               child: Container(
-                height: 150.0,
-                decoration: BoxDecoration(
+                height: 120.0,
+               /* decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(15.0),
                   gradient: LinearGradient(
                     colors: [
@@ -217,7 +216,7 @@ class _HomeScreenState extends State<HomeScreen>
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ),
-                ),
+                ),*/
                 child: Card(
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(15.0),
@@ -228,15 +227,29 @@ class _HomeScreenState extends State<HomeScreen>
                     mainAxisAlignment: MainAxisAlignment.start,
                     mainAxisSize: MainAxisSize.min,
                     children: <Widget>[
-                      Image.asset('assets/garden.png',
-                          fit: BoxFit.fill, width: 150.0, height: 150.0),
+                      ShaderMask(
+                        shaderCallback: (rect) {
+                          return LinearGradient(
+                            begin: Alignment.centerLeft,
+                            end: Alignment.centerRight,
+                            colors: [Colors.black, Colors.transparent],
+                          ).createShader(Rect.fromLTRB(0, 0, rect.width, rect.height));
+                        },
+                        blendMode: BlendMode.dstIn,
+                        child:ClipRRect(
+                          borderRadius: BorderRadius.circular(15.0),
+                          child: Image.asset('assets/about.jpg',
+                              fit: BoxFit.fill, width: 150.0, height: 150.0),
+                        ),
+                      ),
+
                       SizedBox(
-                        width: 20.0,
+                        width: 70.0,
                       ),
                       Container(
-                        child: Text('ගෙවතු වගාව',
+                        child: Text('Garden',
                             style:
-                                TextStyle(color: Colors.green, fontSize: 30)),
+                                TextStyle(color: Colors.black, fontSize: 30)),
                       ),
                     ],
                   ),
@@ -244,7 +257,7 @@ class _HomeScreenState extends State<HomeScreen>
               ),
               onTap: () {
                 Navigator.push(
-                    context, MaterialPageRoute(builder: (context) => expert()));
+                    context, MaterialPageRoute(builder: (context) => Loading3()));
               },
             ),
             SizedBox(
@@ -252,18 +265,11 @@ class _HomeScreenState extends State<HomeScreen>
             ),
             GestureDetector(
               child: Container(
-                height: 150.0,
+                height: 120.0,
                 decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(15.0),
-                  gradient: LinearGradient(
-                    colors: [
-                      Colors.green,
-                      Colors.lightGreenAccent,
-                      Colors.lightGreen,
-                    ],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
+                  borderRadius: BorderRadius.circular(22),
+                  color: index.isEven ? kBlueColor : kSecondaryColor,
+                  boxShadow: [kDefaultShadow],
                 ),
                 child: Card(
                   shape: RoundedRectangleBorder(
@@ -281,7 +287,7 @@ class _HomeScreenState extends State<HomeScreen>
                         width: 70.0,
                       ),
                       Container(
-                        child: Text('මණ්ඩපය',
+                        child: Text('Forum',
                             style:
                                 TextStyle(color: Colors.green, fontSize: 30)),
                       ),
@@ -291,7 +297,7 @@ class _HomeScreenState extends State<HomeScreen>
               ),
               onTap: () {
                 Navigator.push(context,
-                    MaterialPageRoute(builder: (context) => ForumCategory()));
+                    MaterialPageRoute(builder: (context) => Loading2()));
               },
             ),
             SizedBox(
@@ -299,7 +305,7 @@ class _HomeScreenState extends State<HomeScreen>
             ),
             GestureDetector(
                 child: Container(
-                  height: 150.0,
+                  height: 120.0,
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(15.0),
                     gradient: LinearGradient(
@@ -322,13 +328,14 @@ class _HomeScreenState extends State<HomeScreen>
                       mainAxisAlignment: MainAxisAlignment.start,
                       mainAxisSize: MainAxisSize.min,
                       children: <Widget>[
+
                         Image.asset('assets/expert.png',
                             fit: BoxFit.contain, width: 150.0, height: 150.0),
                         SizedBox(
                           width: 50.0,
                         ),
                         Container(
-                          child: Text('විශේෂඥයන්',
+                          child: Text('Experts',
                               style:
                                   TextStyle(color: Colors.green, fontSize: 30)),
                         ),
@@ -345,7 +352,7 @@ class _HomeScreenState extends State<HomeScreen>
             ),
             GestureDetector(
               child: Container(
-                height: 150.0,
+                height: 120.0,
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(15.0),
                   gradient: LinearGradient(
@@ -372,7 +379,7 @@ class _HomeScreenState extends State<HomeScreen>
                         Image.asset('assets/welcome.jpg',
                             fit: BoxFit.contain, width: 150.0, height: 150.0),
                         Container(
-                          child: Text('තොරතුරු',
+                          child: Text('Information',
                               style:
                                   TextStyle(color: Colors.green, fontSize: 30)),
                         ),

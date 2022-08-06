@@ -68,7 +68,7 @@ class CartProvider1 with ChangeNotifier{
     notifyListeners();
   }
 
-  int getCounter (){
+  int getCounter1 (){
     _getPrefItems();
     return  _counter ;
 

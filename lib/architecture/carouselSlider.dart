@@ -8,6 +8,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'architecture.dart';
 import 'bannerModel.dart';
 
+
 class Carouselslider extends StatelessWidget {
   @override
   Widget build(BuildContext context) {

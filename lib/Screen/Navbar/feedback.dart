@@ -1,15 +1,52 @@
+import 'dart:developer';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-
 import 'package:url_launcher/url_launcher.dart';
+import 'package:showcaseview/showcaseview.dart';
+class FeedBack extends StatelessWidget {
+  const FeedBack({Key key}) : super(key: key);
 
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'Flutter ShowCase',
+      theme: ThemeData(
+        primaryColor: const Color(0xffEE5366),
+      ),
+      debugShowCheckedModeBanner: false,
+      home: Scaffold(
+        body: ShowCaseWidget(
+          onStart: (index, key) {
+            log('onStart: $index, $key');
+          },
+          onComplete: (index, key) {
+            log('onComplete: $index, $key');
+    /*        if (index == 4) {
+              SystemChrome.setSystemUIOverlayStyle(
+                SystemUiOverlayStyle.light.copyWith(
+                  statusBarIconBrightness: Brightness.dark,
+                  statusBarColor: Colors.white,
+                ),
+              );
+            }*/
+          },
+         // blurValue: 1,
+          builder: Builder(builder: (context) =>  ReachUs()),
+          autoPlayDelay: const Duration(seconds: 3),
+        ),
+      ),
+    );
+  }
+}
 class ReachUs extends StatefulWidget {
   @override
   _ReachUsState createState() => _ReachUsState();
 }
 
 class _ReachUsState extends State<ReachUs> {
+
   launchUrl(String url) async {
     if (await canLaunch(url)) {
       await launch(url);
@@ -32,13 +69,23 @@ class _ReachUsState extends State<ReachUs> {
   TextEditingController t2 = TextEditingController();
    String name;
    String message;
-
+  final GlobalKey _one = GlobalKey();
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.lightGreen,
         title: Text("Reach Us"),
+        actions: [
+          Showcase(
+            key: _one,
+            description: 'Tap to see menu options',
+            child: Icon(
+              Icons.menu,
+              color: Theme.of(context).primaryColor,
+            ),
+          )
+        ],
       ),
       body: Padding(
         padding: const EdgeInsets.all(10.0),

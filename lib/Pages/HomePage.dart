@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:animated_text_kit/animated_text_kit.dart';
 import 'package:badges/badges.dart';
 import 'package:blogapp/Architectureprofile/ArchitectDashboard.dart';
+import 'package:blogapp/Cart/cart_screen.dart';
 import 'package:blogapp/Cart/main.dart';
 import 'package:blogapp/Expertprofile/Expertdashboard.dart';
 import 'package:blogapp/Language/translator.dart';
@@ -23,6 +24,7 @@ import 'package:blogapp/Screen/Navbar/feedback.dart';
 import 'package:blogapp/Screen/Navbar/expertlist.dart';
 import 'package:blogapp/Search/HomeScreen.dart';
 import 'package:blogapp/architecture/widget_screen.dart';
+import 'package:blogapp/checkout/mainpage.dart';
 import 'package:blogapp/shop/ShopProfile/Shopdashboard.dart';
 import 'package:blogapp/shop/ShopProfile/shoprofile.dart';
 import 'package:flutter/material.dart';
@@ -35,8 +37,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:showcaseview/showcase_widget.dart';
 
-import '../Imagelabel.dart';
-import '../bot.dart';
+import '../Bot/bot.dart';
 import 'bg_drawer.dart';
 
 //import 'package:blogapp/onesignal_flutter/onesignal_flutter.dart';
@@ -54,26 +55,32 @@ static final String oneSignalAppId="7a1f4b11-b687-479e-84b1-35d8ac53978f";
 Future<void> initPlateformState() async{
   OneSignal.shared.setAppId(oneSignalAppId);
 }*/
+  final storage = FlutterSecureStorage();
+  NetworkHandler networkHandler = NetworkHandler();
   final keyOne = GlobalKey();
   final keyTwo = GlobalKey();
   final keyThree = GlobalKey();
   final keyFour = GlobalKey();
   int currentState = 0;
-
   List<Widget> widgets = [HomeScreen(), ProfilePage()];
   List<String> titleString = ["Home Page", "Profile Page"];
   bool approval=true;
   bool approval2=true;
   bool approval3=true;
-  final storage = FlutterSecureStorage();
-  NetworkHandler networkHandler = NetworkHandler();
   var username1="";
   int _counter;
+  int _counter2;
+  int _counter3;
   int _counter1 = 0;
   String visibility;
+  String visibility2;
+  String visibility3;
   String value;
   var jsonData;
   var _postsJson;
+  var _architecture;
+  var _expert;
+
   Widget profilePhoto = Container(
     height: 100,
     width: 100,
@@ -91,20 +98,72 @@ Future<void> initPlateformState() async{
     });
     print(_counter);
   }
-
-  void fetchPosts() async {
-    print('bye');
+  void fetchexpert() async {
+    print('expert Working');
     String token = await storage.read(key: "token");
     try {
-      final response = await get(
-          Uri.parse(
-              'https://govi-piyasa-v-0-1.herokuapp.com/api/v1/shops/getUsersShop'),
+      final response = await get(Uri.parse('https://govi-piyasa-v-0-1.herokuapp.com/api/v1/architects/getUsersArchitect'),
           headers: {
             'Accept': 'application/json',
             'Authorization': 'Bearer $token',
           });
       print('Token : ${token}');
+      print(' SHOW : ${response.body}');
+      final jsonData = jsonDecode(response.body)['data'];
+      setState(() {
+        _expert = jsonData;
+        visibility3 = _expert['expertVisibility'].toString();
 
+      });
+      if(visibility3=="Active"){
+        print("active expert");
+        if(_counter3<3){
+          showSimpleNotification("Activated expert","Not Activated expert profile");}
+        approval=true;
+      }else{
+        approval=false;
+        print("not active");
+      }
+    } catch (err) {}
+  }
+  void fetchArchitect() async {
+    print('Architect Working');
+    String token = await storage.read(key: "token");
+    try {
+      final response = await get(Uri.parse('https://govi-piyasa-v-0-1.herokuapp.com/api/v1/architects/getUsersArchitect'),
+          headers: {
+            'Accept': 'application/json',
+            'Authorization': 'Bearer $token',
+          });
+      print('Token : ${token}');
+      print(' SHOW : ${response.body}');
+      final jsonData = jsonDecode(response.body)['data'];
+      setState(() {
+        _architecture = jsonData;
+        visibility2 = _architecture['architectVisibility'].toString();
+
+      });
+      if(visibility2=="Active"){
+        print("active");
+        if(_counter2<3){
+          showSimpleNotification("Activated Architect","Not Activated Architect profile");}
+        approval=true;
+      }else{
+        approval=false;
+        print("not active");
+      }
+    } catch (err) {}
+  }
+  void fetchShop() async {
+    print('Shop Working');
+    String token = await storage.read(key: "token");
+    try {
+      final response = await get(Uri.parse('https://govi-piyasa-v-0-1.herokuapp.com/api/v1/shops/getUsersShop'),
+          headers: {
+            'Accept': 'application/json',
+            'Authorization': 'Bearer $token',
+          });
+      print('Token : ${token}');
       print(' SHOW : ${response.body}');
       final jsonData = jsonDecode(response.body)['data'];
       setState(() {
@@ -114,16 +173,12 @@ Future<void> initPlateformState() async{
       if(visibility=="Active"){
         print("active");
         if(_counter<3){
-
-          showSimpleNotification();
-
-        }
+          showSimpleNotification("Activated shop","Not Activated yet");}
         approval=true;
       }else{
         approval=false;
         print("not active");
       }
-
     } catch (err) {}
   }
   void _increment() async {
@@ -141,7 +196,8 @@ Future<void> initPlateformState() async{
   @override
   void initState() {
     loadCounter();
-
+    fetchArchitect();
+    fetchexpert();
     requestPermissions();
     FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
     var initializationSettingsAndroid = AndroidInitializationSettings('app_icon'); // <- default icon name is @mipmap/ic_launcher
@@ -153,12 +209,12 @@ Future<void> initPlateformState() async{
     );
     var initializationSettings = InitializationSettings(initializationSettingsAndroid, iOSSettings);
     flutterLocalNotificationsPlugin.initialize(initializationSettings, onSelectNotification: onClickNotification);
-    fetchPosts();
+    fetchShop();
     readuser();
     super.initState();
 
     // checkProfile();
-    /* WidgetsBinding.instance.addPostFrameCallback(
+/*    WidgetsBinding.instance.addPostFrameCallback(
           (_) => ShowCaseWidget.of(context).startShowCase([
         keyOne,
         keyThree,
@@ -183,12 +239,12 @@ Future<void> initPlateformState() async{
     }));
   }
 
-  showSimpleNotification() async {
+  showSimpleNotification(title,title2) async {
     var androidDetails = AndroidNotificationDetails('id', 'channel ', 'description',
         priority: Priority.High, importance: Importance.Max);
     var iOSDetails = IOSNotificationDetails();
     var platformDetails = new NotificationDetails(androidDetails, iOSDetails);
-    await flutterLocalNotificationsPlugin.show(0, 'Shop Activation Process', 'Shop Activated',
+    await flutterLocalNotificationsPlugin.show(0, '${title}', '${title2}',
         platformDetails, payload: 'Destination Screen (Simple Notification)');
   }
 
@@ -202,7 +258,8 @@ Future<void> initPlateformState() async{
         _counter.toString(),
         style: TextStyle(color: Colors.white),
       ),
-      child: IconButton(icon: Icon(Icons.notifications,color:Colors.black), onPressed: () {
+      child: IconButton(icon: Icon(Icons.notifications,color:Colors.black),
+          onPressed: () {
         _increment();
         loadCounter();
         Navigator.push(context,
@@ -243,17 +300,11 @@ Future<void> initPlateformState() async{
                 children: <Widget>[
                 Container(
                 height: 120,
-                width: 120,
-                decoration: BoxDecoration(
+                width: 120, decoration: BoxDecoration(
                   image: new DecorationImage(
                     image: new AssetImage("assets/3.png"),
                     fit: BoxFit.cover,
-                  ),
-                  borderRadius: BorderRadius.circular(40),
-                ),
-              ),
-
-                  Text(
+                  ), borderRadius: BorderRadius.circular(40),),), Text(
                     "Govipiyasa",
                     style: TextStyle(
                       color: Colors.black,
@@ -268,7 +319,7 @@ Future<void> initPlateformState() async{
               trailing: Icon(Icons.feedback, color: Colors.green),
               onTap: () {
                 Navigator.of(context)
-                    .push(MaterialPageRoute(builder: (context) => ReachUs()));
+                    .push(MaterialPageRoute(builder: (context) => FeedBack()));
               },
             ),
             ListTile(
@@ -318,8 +369,8 @@ Future<void> initPlateformState() async{
         //centerTitle: true,
         title:TextLiquidFill(
           waveDuration:  Duration(milliseconds: 4000),
-          text: _message,
-          waveColor: Colors.blueAccent,
+          text: "GiviPiyasa",
+          waveColor: Colors.lightGreen,
           boxBackgroundColor: Colors.white,
           textStyle: TextStyle(
             fontSize: 30.0,
@@ -476,6 +527,26 @@ Future<void> initPlateformState() async{
                     });
                   },
                   iconSize: 40,
+                ),
+                IconButton(
+                  icon: Icon(Icons.store),
+                  color: currentState == 2 ? Colors.black12 : Colors.black,
+                  onPressed: () {
+                    setState(() {
+                      currentState = 2;
+                    });
+                  },
+                  iconSize: 40,
+                ),
+                IconButton(
+                  icon: Icon(Icons.assistant),
+                  color: currentState == 2 ? Colors.black12 : Colors.black,
+                  onPressed: () {
+                    setState(() {
+                      currentState = 3;
+                    });
+                  },
+                  iconSize: 40,
                 )
               ],
             ),
@@ -498,12 +569,12 @@ Future<void> initPlateformState() async{
         break;
       case 2:
         Navigator.of(context)
-            .push(MaterialPageRoute(builder: (context) => Searchitems()));
+            .push(MaterialPageRoute(builder: (context) => CartScreen()));
         break;
       case 3:
-        Navigator.of(context).push(
+        /*Navigator.of(context).push(
             MaterialPageRoute(builder: (context) => Imagelabel()));
-        break;
+        break;*/
       case 4:
         Navigator.of(context)
             .push(MaterialPageRoute(builder: (context) =>CartNew()));

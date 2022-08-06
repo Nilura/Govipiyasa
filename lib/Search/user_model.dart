@@ -1,20 +1,25 @@
 class Userlist {
-  int id;
-  String categoryName;
+
+  //String avilability;
+  //bool itemVisibility;
+  String id;
   String productName;
-  int quantity;
   int price;
   String description;
-  String name;
+  int quantity;
+  String categoryName;
+
+
 
   Userlist(
-      {this.id,
-        this.categoryName,
+
+      { this.id,
         this.productName,
-        this.quantity,
         this.price,
-        this.description,
-        this.name});
+  this.description,
+        this.quantity,
+        this.categoryName,
+        });
 
   Userlist.fromJson(Map<String, dynamic> json) {
     id = json['_id'];
@@ -23,20 +28,17 @@ class Userlist {
     description = json['description'];
     quantity = json['quantity'];
     categoryName = json['categoryName'];
-    name = json['name'];
 
   }
 
   Map<String, dynamic> toJson() {
     final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['_id'] = this.id;
-    data['categoryName'] = this.categoryName;
+    data['_id']=this.id;
     data['productName'] = this.productName;
-    data['quantity'] = this.quantity;
     data['price'] = this.price;
     data['description'] = this.description;
-    data['name'] = this.name;
-
+   data['quantity']=this. quantity ;
+   data['categoryName']=this.categoryName;
     return data;
   }
 }

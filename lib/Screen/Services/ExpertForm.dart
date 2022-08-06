@@ -36,7 +36,7 @@ class _ExpertFormState extends State<ExpertForm> {
   _ExpertFormState(this.location, this.latlang, this.longitude);
 
   final picker = ImagePicker();
-  File _image;
+  File _image,_pic;
   FlutterSecureStorage storage = FlutterSecureStorage();
 
   chooseImage(ImageSource source) async {
@@ -45,76 +45,60 @@ class _ExpertFormState extends State<ExpertForm> {
       _image = File(image.path);
     });
   }
-  void uploadFileToServer(File imagePath) async {
-    print("test");
-    var request = new http.MultipartRequest(
-        "POST", Uri.parse('https://govi-piyasa-v-0-1.herokuapp.com/api/v1/experts'));
-    request.fields['description'] = 'Rohan';
-    request.fields['designation'] = 'My first image';
-    request.files.add(await http.MultipartFile.fromPath('proofDocuments', imagePath.path));
-    request.send().then((response) {
-      http.Response.fromStream(response).then((onValue) {
-        try {
-          // get your response here...
-        } catch (e) {
-          // handle exeption
-        }
-      });
+
+  chooseProfileImage(ImageSource source) async {
+    final image = await picker.getImage(source: source);
+    setState(() {
+      _pic = File(image.path);
     });
   }
-  postExpert(description,designation,qualification,latitude,longitude,city,filePath) async {
-
-    String fileName = basename(filePath.path);
-   print("file base name:$fileName");
+  upload(String filename) async {
+    print("test");
+  var request = http.MultipartRequest('POST', Uri.parse('https://govi-piyasa-v-0-1.herokuapp.com/api/v1/experts'));
+  request.files.add(
+  await http.MultipartFile.fromPath(
+  'proofDocuments',
+  filename
+  )
+  );
+  var res = await request.send();
+}
+  Dio dio =Dio();
+  createExpert(email,contact,description,city,designation,qualification,latitude,longitude,File file,File pic) async {
     String token = await storage.read(key: "token");
+    dio.options.contentType = 'application/json';
+    dio.options.headers["authorization"] = "Bearer ${token}";
     print(token);
-    print(filePath);
-    var fileContent = filePath.readAsBytesSync();
-    var fileContentBase64 = base64.encode(fileContent);
-    final uri = 'https://govi-piyasa-v-0-1.herokuapp.com/api/v1/experts';
-    var requestBody = {
-      "description":description,
-      "designation":designation,
-      "city":city,
-      "qualification":qualification,
-      "latitude":latitude,
-      "longitude":longitude,
-      "proofDocuments": fileContentBase64 ,
+    try {
 
-
-
-
-    };
-
-    http.Response response = await http.post(
-      uri,
-      body: json.encode(requestBody),
-      headers: {
-        "Content-Type": "application/json",
-        'Authorization': 'Bearer $token',
-      },
-    );
-
-    print(response.body);
-/*    var postUri = Uri.parse("https://govi-piyasa-v-0-1.herokuapp.com/api/v1/shops");
-
-    http.MultipartRequest request = new http.MultipartRequest("POST", postUri);
-
-    http.MultipartFile multipartFile = await http.MultipartFile.fromPath(
-        'profilePic',  fileContentBase64);
-    request.headers['Authorization'] ='bearer $token';
-    request.headers['Content-Type'] ='application/json';
-    request.fields['shopName']=shopName;
-    request.fields['email']=email;
-    request.fields['address']=address;
-    request.files.add(multipartFile);
-
-    http.StreamedResponse response1 = await request.send();
-
-
-    print(response1.statusCode);*/
+      String fileName=file.path.split('/').last;
+      String picName=file.path.split('/').last;
+      FormData formData=FormData.fromMap({
+        "email": email,
+        "contactNumber":contact,
+        "description":description,
+        "qualification":qualification,
+        "city":city,
+         "designation": designation,
+        "latitude":latitude,
+        "longitude":longitude,
+        "profilePicture": await MultipartFile.fromFile(pic.path, filename:picName),
+        "shopImages":await MultipartFile.fromFile(file.path, filename:fileName),
+      });
+      final response=await dio.post('https://govi-piyasa-v-0-1.herokuapp.com/api/v1/experts', data: formData);
+      print(response);
+      return response;
+    } on DioError catch (e) {
+      Fluttertoast.showToast(
+          msg: e.message,
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.BOTTOM,
+          backgroundColor: Colors.red,
+          textColor: Colors.white,
+          fontSize: 16.0);
+    }
   }
-  var description, email ,qualification , designation, city, lat, long;
+  var description, email ,qualification , designation, city, lat, long,contact;
   final GlobalKey<FormState> _formkey = GlobalKey<FormState>();
   final myController5 = TextEditingController();
   final myController6 = TextEditingController();
@@ -321,6 +305,69 @@ class _ExpertFormState extends State<ExpertForm> {
                         SizedBox(height: 5.0),
                         Container(
                           margin:
+                          const EdgeInsets.only(left: 10.0, right: 10.0),
+                          child: TextFormField(
+
+                            decoration: InputDecoration(
+                              labelText: 'Email',
+                              prefixIcon: GestureDetector(
+                                child: Icon(
+                                  Icons.add_location,
+                                  color: Colors.blue,
+                                ),
+                                onTap: () {
+                                  // _showToast(context);
+                                  Navigator.of(context).push(MaterialPageRoute(
+                                      builder: (context) => expertmap()));
+//                                    uploadImage();
+                                },
+                              ),
+                            ),
+                            onChanged: (val) {
+                              email = val;
+                            },
+                          ),
+                          decoration: BoxDecoration(
+                            border:
+                            Border.all(color: Colors.lightGreen, width: 1),
+                            borderRadius:
+                            BorderRadius.all(Radius.circular(5.0)),
+                          ),
+                        ),
+                        SizedBox(height: 5.0),
+                        Container(
+                          margin:
+                          const EdgeInsets.only(left: 10.0, right: 10.0),
+                          child: TextFormField(
+                            decoration: InputDecoration(
+                              labelText: 'Contact Number',
+                              prefixIcon: GestureDetector(
+                                child: Icon(
+                                  Icons.add_location,
+                                  color: Colors.blue,
+                                ),
+                                onTap: () {
+                                  // _showToast(context);
+                                  Navigator.of(context).push(MaterialPageRoute(
+                                      builder: (context) => expertmap()));
+//                                    uploadImage();
+                                },
+                              ),
+                            ),
+                            onChanged: (val) {
+                              contact = val;
+                            },
+                          ),
+                          decoration: BoxDecoration(
+                            border:
+                            Border.all(color: Colors.lightGreen, width: 1),
+                            borderRadius:
+                            BorderRadius.all(Radius.circular(5.0)),
+                          ),
+                        ),
+                        SizedBox(height: 5.0),
+                        Container(
+                          margin:
                               const EdgeInsets.only(left: 10.0, right: 10.0),
                           child: TextFormField(
                             controller: myController7,
@@ -377,7 +424,7 @@ class _ExpertFormState extends State<ExpertForm> {
                               children: [
                                 Container(
                                   padding: EdgeInsets.only(left: 16, right: 16),
-                                  child: _image != null
+                                  child: _pic != null
                                       ? Container(
                                           height: 50,
                                           width: 50,
@@ -386,7 +433,7 @@ class _ExpertFormState extends State<ExpertForm> {
                                                 color: Colors.blueAccent,
                                                 width: 3),
                                             image: DecorationImage(
-                                              image: FileImage(_image),
+                                              image: FileImage(_pic),
                                             ),
                                           ),
                                         )
@@ -408,7 +455,7 @@ class _ExpertFormState extends State<ExpertForm> {
                                   children: [
                                     IconButton(
                                         onPressed: () {
-                                          chooseImage(ImageSource.gallery);
+                                          chooseProfileImage(ImageSource.gallery);
                                         },
                                         icon: Icon(Icons.camera_alt_sharp))
                                   ],
@@ -427,9 +474,10 @@ class _ExpertFormState extends State<ExpertForm> {
                                   Icons.upload,
                                   color: Colors.blue,
                                 ),
-                                onTap: () {
+                                onTap: () async{
                                   // _showToast(context);
-                                  chooseImage(ImageSource.gallery);
+                                //  chooseImage(ImageSource.gallery);
+
 //                                    uploadImage();
                                 },
                               ),
@@ -453,8 +501,11 @@ class _ExpertFormState extends State<ExpertForm> {
                             ),
                           ),
                           onPressed: () {
-                            uploadFileToServer(_image);
-                           // postExpert(description,designation,qualification,lat,long,city,_image);
+                           // uploadFileToServer(_image);
+                           // postExpert();
+                           // upload(_image.path);
+                            createExpert(email,contact,description,city,designation,qualification,lat,long,_image,_pic);
+                            //postExpert(description,designation,qualification,lat,long,city,email,contact);
                         /*    Navigator.push(
                                 context,
                                 MaterialPageRoute(

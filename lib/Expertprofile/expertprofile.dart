@@ -11,10 +11,7 @@ import 'package:http/http.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
-
 import 'package:fluttertoast/fluttertoast.dart';
-
 import 'Answered question.dart';
 
 
@@ -24,7 +21,7 @@ class expertprofile extends StatefulWidget {
   _expertprofileState createState() => _expertprofileState();
 }
 
-class _expertprofileState extends State<expertprofile> {
+class _expertprofileState extends State<expertprofile> with TickerProviderStateMixin{
   final Itemservice api = Itemservice();
   final storage = FlutterSecureStorage();
   File _image;
@@ -65,20 +62,7 @@ class _expertprofileState extends State<expertprofile> {
   int _selectedIndex = 0;
   static const TextStyle optionStyle =
   TextStyle(fontSize: 30, fontWeight: FontWeight.bold);
-  static const List<Widget> _widgetOptions = <Widget>[
-    Text(
-      'Index 0: Home',
-      style: optionStyle,
-    ),
-    Text(
-      'Index 1: Business',
-      style: optionStyle,
-    ),
-    Text(
-      'Index 2: School',
-      style: optionStyle,
-    ),
-  ];
+
 
   void _onItemTapped(int index) {
     setState(() {
@@ -146,9 +130,16 @@ class _expertprofileState extends State<expertprofile> {
     );
   }
 
-
+  AnimationController controller;
   void initState() {
     loadImage();
+    controller = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 1),
+    )..addListener(() {
+      setState(() {});
+    });
+    controller.repeat(reverse: false);
     fetchexpert();
     super.initState();
   }
@@ -156,7 +147,12 @@ class _expertprofileState extends State<expertprofile> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Container(
+      body:  _expertjson==null?Center(
+        child: CircularProgressIndicator(
+          value: controller.value,
+          semanticsLabel: 'Linear progress indicator',
+        ),
+      ): Container(
         margin: const EdgeInsets.all(10.0),
         decoration: BoxDecoration(
             border: Border.all(color: Colors.blueAccent, width: 1)),

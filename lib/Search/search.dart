@@ -53,7 +53,7 @@ class SearchUser extends SearchDelegate {
                         ),
                         child: Center(
                           child: Text(
-                            '${data[index].id}',
+                            '${data[index].productName}',
                             style: TextStyle(
                                 fontSize: 20,
                                 fontWeight: FontWeight.bold,
@@ -73,7 +73,7 @@ class SearchUser extends SearchDelegate {
                             ),
                             SizedBox(height: 10),
                             Text(
-                              '${data[index].quantity}',
+                              '${data[index].price}',
                               style: TextStyle(
                                 color: Colors.black,
                                 fontSize: 14,

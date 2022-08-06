@@ -116,11 +116,31 @@ class _State extends State<Postlist> {
       });
     } catch (err) {}
   }
+  var _singleuser;
+  void fetchPosts() async {
+    print('bye');
+    String token = await storage.read(key: "token");
+    try {
+      final response = await get(Uri.parse('https://govi-piyasa-v-0-1.herokuapp.com/api/v1/auths/getLoggedUser'),  headers: {
+        'Accept': 'application/json',
+        'Authorization': 'Bearer $token',
+      });
+      print('Token : ${token}');
 
+      print('Profile Data : ${response.body}');
+      final jsonData = jsonDecode(response.body)['data'];
+      setState(() {
+        _singleuser = jsonData;
+        ID=_singleuser['_id'].toString();
+      });
+    } catch (err) {}
+
+
+  }
   Future<Null> refreshList() async {
     await Future.delayed(Duration(seconds: 3));
   }
-
+/*
   void readuser() async {
     //ID = await storage.read(key: "id");
     ID = await storage.read(key: "id");
@@ -132,7 +152,7 @@ class _State extends State<Postlist> {
       textColor: Colors.white,
       fontSize: 16.0,
     );
-  }
+  }*/
 
   Future<Qmodel> DeleteData(String id) async {
     var response = await http.delete(Uri.parse(
@@ -146,9 +166,9 @@ class _State extends State<Postlist> {
   }
 
   void initState() {
-
+    fetchPosts();
     getPosts();
-    readuser();
+   // readuser();
     super.initState();
   }
   final _comment = TextEditingController();
@@ -221,7 +241,21 @@ class _State extends State<Postlist> {
                                 controller: _comment,
                                 decoration: InputDecoration(
                                     labelText: 'Comment here',
-
+                                    suffixIcon: IconButton(
+                                      icon: Icon(Icons.send),
+                                      onPressed: (){
+                                        addAnswer(_comment.text,post['_id']);
+                                        _comment.clear();
+                                        Fluttertoast.showToast(
+                                          msg: "Added",
+                                          toastLength: Toast.LENGTH_SHORT,
+                                          gravity: ToastGravity.BOTTOM,
+                                          backgroundColor: Colors.red,
+                                          textColor: Colors.white,
+                                          fontSize: 16.0,
+                                        );
+                                      },
+                                    ),
                                     border: OutlineInputBorder(
                                       borderRadius: BorderRadius.circular(15.0),
                                     ),
@@ -259,18 +293,9 @@ class _State extends State<Postlist> {
                                         Icons.beenhere_rounded ,
                                       ),
                                       onPressed: () {
-                                        addAnswer(_comment.text,post['_id']);
-                                        _comment.clear();
-                                        Fluttertoast.showToast(
-                                          msg: "Added",
-                                          toastLength: Toast.LENGTH_SHORT,
-                                          gravity: ToastGravity.BOTTOM,
-                                          backgroundColor: Colors.red,
-                                          textColor: Colors.white,
-                                          fontSize: 16.0,
-                                        );
+
                                       }),
-                                  IconButton(
+                            /*      IconButton(
                                       icon: Icon(
                                         MyFlutterApp.thumbs_up,
                                       ),
@@ -285,8 +310,9 @@ class _State extends State<Postlist> {
                                           textColor: Colors.white,
                                           fontSize: 16.0,
                                         );
-                                      }),
-                             /*     LikeButton(
+                                      }),*/
+                                  LikeButton(
+                                    onTap: onLikeButtonTapped,
                                     size: 20,
                                     circleColor:
                                     CircleColor(start: Color(0xff00ddff), end: Color(0xff0099cc)),
@@ -299,6 +325,7 @@ class _State extends State<Postlist> {
                                         Icons.favorite_border,
                                         color: isLiked ? Colors.red : Colors.grey,
                                         size: 20,
+
                                       );
                                     },
                                     likeCount: post['Vote'],
@@ -319,7 +346,7 @@ class _State extends State<Postlist> {
                                         );
                                       return result;
                                     },
-                                  ),*/
+                                  ),
                                   IconButton(
                                       icon: Icon(
                                         MyFlutterApp.thumbs_down,
@@ -412,7 +439,15 @@ class _State extends State<Postlist> {
           ),
         ));
   }
+  Future<bool> onLikeButtonTapped(bool isLiked) async{
+    /// send your request here
+    // final bool success= await sendRequest();
 
+    /// if failed, you can do nothing
+    // return success? !isLiked:isLiked;
+
+    return !isLiked;
+  }
   void showAnswer(post, total,index) {
     showDialog(
       context: context,

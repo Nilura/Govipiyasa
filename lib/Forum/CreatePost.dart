@@ -99,10 +99,10 @@ void initState() {
          // backgroundColor: Colors.lightGreen,
           elevation: 0.0,
           centerTitle: true,
-          flexibleSpace: Image(
+     /*     flexibleSpace: Image(
             image: AssetImage('assets/about.jpg'),
             fit: BoxFit.cover,
-          ),
+          ),*/
           title: Text("sdsd",
               style: TextStyle(
                   fontFamily: 'Varela',

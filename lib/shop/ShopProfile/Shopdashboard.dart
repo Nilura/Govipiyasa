@@ -3,7 +3,6 @@ import 'package:blogapp/Pages/HomePage.dart';
 import 'package:blogapp/Screen/HomeScreen.dart';
 import 'package:blogapp/shop/services.dart';
 import 'package:blogapp/shop/ShopProfile/shoprofile.dart';
-import 'package:blogapp/shop/ShopProfile/updateitem.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -17,7 +16,7 @@ import '../item.dart';
 import '../itemservice.dart';
 
 class Shopdashboard extends StatefulWidget {
-//  final Album cases;
+
   _ShopdashboardState createState() => _ShopdashboardState();
 }
 
@@ -28,22 +27,6 @@ class _ShopdashboardState extends State<Shopdashboard> {
   List<Widget> widgets = [Showitem(), Chart(), Ads()];
 
   int _selectedIndex = 0;
-  static const TextStyle optionStyle =
-      TextStyle(fontSize: 30, fontWeight: FontWeight.bold);
-  static const List<Widget> _widgetOptions = <Widget>[
-    Text(
-      'Index 0: Home',
-      style: optionStyle,
-    ),
-    Text(
-      'Index 1: Business',
-      style: optionStyle,
-    ),
-    Text(
-      'Index 2: School',
-      style: optionStyle,
-    ),
-  ];
 
   void _onItemTapped(int index) {
     setState(() {
@@ -58,7 +41,7 @@ class _ShopdashboardState extends State<Shopdashboard> {
 
   @override
   Widget build(BuildContext context) {
-    String city = "Ja-ela";
+
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
@@ -78,6 +61,7 @@ class _ShopdashboardState extends State<Shopdashboard> {
         backgroundColor: Colors.lightGreen,
         centerTitle: true,
         actions: [
+
           IconButton(
               icon: Icon(FontAwesomeIcons.plus),
               onPressed: () {

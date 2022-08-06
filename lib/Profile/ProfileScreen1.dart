@@ -1,8 +1,5 @@
 import 'dart:convert';
 import 'dart:io';
-
-
-import 'package:blogapp/wishlist/wish_screen.dart';
 import 'package:blogapp/wishlist/wishmain.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
@@ -10,9 +7,10 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:http/http.dart' as http;
-import 'package:http/http.dart';
+
+
+
 import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -49,7 +47,7 @@ class MapScreenState extends State<ProfilePage>
     with SingleTickerProviderStateMixin {
   bool _status = true;
   var id;
-
+  String errmsg = "";
   Future<User> updateUser(String id,String userName,String email, String contactNumber ,String city,String password) async {
     print(id);
     final response = await http.put(
@@ -88,14 +86,37 @@ class MapScreenState extends State<ProfilePage>
   final myController4 = TextEditingController();
   final myController5 = TextEditingController();
   final myController6 = TextEditingController();
+  Dio dio =Dio();
   var jsonData;
   var _postsJson;
   String name;
-  void fetchPosts() async {
+  var apidata;
+  userProfile(File file,id) async {
+    print(file);
+    print("working upload");
+    try {
+      String fileName=file.path.split('/').last;
+      FormData formData=FormData.fromMap({
+        "profilePicture": await MultipartFile.fromFile(file.path, filename:fileName),
+      });
+
+      return await dio.put('https://govi-piyasa-v-0-1.herokuapp.com/api/v1/auths/updateProfilePic/$id', data: formData);
+    } on DioError catch (e) {
+      Fluttertoast.showToast(
+          msg: e.message,
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.BOTTOM,
+          backgroundColor: Colors.red,
+          textColor: Colors.white,
+          fontSize: 16.0);
+    }
+  }
+
+ void fetchsingleuser() async {
     print('bye');
     String token = await storage.read(key: "token");
     try {
-      final response = await get(Uri.parse('https://govi-piyasa-v-0-1.herokuapp.com/api/v1/auths/getLoggedUser'),  headers: {
+      final response = await http.get(Uri.parse('https://govi-piyasa-v-0-1.herokuapp.com/api/v1/auths/getLoggedUser'),  headers: {
         'Accept': 'application/json',
         'Authorization': 'Bearer $token',
       });
@@ -123,11 +144,12 @@ class MapScreenState extends State<ProfilePage>
 
   void writeuser() async{
     await storage.write(key: "id", value:id);
-    print("hello");
+    print(id);
   }
   void initState() {
     name= myController1.text;
-    fetchPosts();
+    fetchsingleuser();
+
     loadImage();
     writeuser();
     super.initState();
@@ -136,32 +158,16 @@ class MapScreenState extends State<ProfilePage>
   File _image;
   String _imagepath;
 
-/*
-  Future pickImage() async {
-    final pickedFile = await picker.getImage(source: ImageSource.camera);
 
-    setState(() {
-      _imageFile = File(pickedFile.path);
-    });
-  }
-  File _imageFile;
-  Future uploadImageToFirebase(BuildContext context) async {
-    String fileName = basename(_imageFile.path);
-    StorageReference firebaseStorageRef =
-    FirebaseStorage.instance.ref().child('uploads/$fileName');
-    StorageUploadTask uploadTask = firebaseStorageRef.putFile(_imageFile);
-    StorageTaskSnapshot taskSnapshot = await uploadTask.onComplete;
-    taskSnapshot.ref.getDownloadURL().then(
-          (value) => print("Done: $value"),
-    );
-  }*/
   chooseImage(ImageSource source) async{
     final image=await picker.getImage(source:source);
 
     setState(() {
       _image=File(image.path);
+      SaveImage(_image.path);
+      userProfile(_image,id);
     });
-    SaveImage(_image.path);
+
 
   }
   void SaveImage(path) async {
@@ -177,32 +183,8 @@ class MapScreenState extends State<ProfilePage>
       fontSize: 16.0,
     );
   }
-/*  void SaveImage(path) async {
-  uploadImage('image', File('assets/about.jpg'));
-  }*/
-  uploadImage(String title, File file) async{
-
-    var request = http.MultipartRequest("POST",Uri.parse("https://api.imgur.com/3/image"));
-
-    request.fields['title'] = "dummyImage";
-    request.headers['Authorization'] = "Client-ID " +"f7........";
-
-    var picture = http.MultipartFile.fromBytes('image', (await rootBundle.load('assets/about.jpg')).buffer.asUint8List(),
-        filename: 'testimage.png');
-
-    request.files.add(picture);
-
-    var response = await request.send();
-
-    var responseData = await response.stream.toBytes();
-
-    var result = String.fromCharCodes(responseData);
-
-    print(result);
 
 
-
-  }
   Future loadImage() async {
     SharedPreferences pref = await SharedPreferences.getInstance();
 

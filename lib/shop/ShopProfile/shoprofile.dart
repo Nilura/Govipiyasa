@@ -1,9 +1,12 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:awesome_dialog/awesome_dialog.dart';
+import 'package:blogapp/Screen/Navbar/Delivery.dart';
 import 'package:blogapp/checkout/widgets/itemdetails.dart';
 import 'package:blogapp/shop/ShopProfile/updateitem.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:http/http.dart';
@@ -12,7 +15,6 @@ import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'Chart.dart';
 
-import 'package:fluttertoast/fluttertoast.dart';
 
 import '../DataModel.dart';
 import 'Editshop.dart';
@@ -24,7 +26,15 @@ class Showitem extends StatefulWidget {
   _ShowitemState createState() => _ShowitemState();
 }
 
-class _ShowitemState extends State<Showitem> {
+class _ShowitemState extends State<Showitem> with TickerProviderStateMixin{
+  String textFromField='Loading....';
+  getData()async{
+    String response;
+    response =await rootBundle.loadString('text/policy');
+    setState(() {
+      textFromField=response;
+    });
+  }
   final Itemservice api = Itemservice();
   final storage = FlutterSecureStorage();
   File _image;
@@ -88,29 +98,8 @@ class _ShowitemState extends State<Showitem> {
       });
     } catch (err) {}
   }
-  int _selectedIndex = 0;
-  static const TextStyle optionStyle =
-  TextStyle(fontSize: 30, fontWeight: FontWeight.bold);
-  static const List<Widget> _widgetOptions = <Widget>[
-    Text(
-      'Index 0: Home',
-      style: optionStyle,
-    ),
-    Text(
-      'Index 1: Business',
-      style: optionStyle,
-    ),
-    Text(
-      'Index 2: School',
-      style: optionStyle,
-    ),
-  ];
 
-  void _onItemTapped(int index) {
-    setState(() {
-      _selectedIndex = index;
-    });
-  }
+
 
 
   void SaveImage(path) async {
@@ -160,20 +149,56 @@ class _ShowitemState extends State<Showitem> {
     });
     SaveImage(_image.path);
   }
-
+  AnimationController controller;
   void initState() {
+    getData();
+
+    controller = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 1),
+    )..addListener(() {
+      setState(() {});
+    });
+    controller.repeat(reverse: false);
     fetchitems();
     loadImage();
     fetchshop();
     super.initState();
   }
 
+  Future<Item> updatestatus(String id) async {
+    print(id);
+    final response = await http.put(
+      Uri.parse('https://govi-piyasa-v-0-1.herokuapp.com/api/v1/shops/setShopVisibility/$id'),
+      headers: <String, String>{
+        'Content-Type': 'application/json; charset=UTF-8',
+      },
+      body: jsonEncode(<String, dynamic>{
+        'status':"Block",
+
+      }),
+    );
+    print(response.body);
+
+    if (response.statusCode == 200) {
+      return Item.fromJson(jsonDecode(response.body));
+    } else {
+
+      throw Exception('Failed to Deactivate.');
+    }
+  }
+  /*_shopjson==null?Center(
+  child: CircularProgressIndicator(
+  value: controller.value,
+  semanticsLabel: 'Linear progress indicator',
+  ),
+  ):*/
   @override
   Widget build(BuildContext context) {
     return Scaffold(
 
       //AssetImage("assets/architect.jpg")
-      body: Container(
+      body:Container(
         margin: const EdgeInsets.all(10.0),
         decoration: BoxDecoration(
             border: Border.all(color: Colors.blueAccent, width: 1)),
@@ -262,27 +287,7 @@ class _ShowitemState extends State<Showitem> {
                                               ),
                                             ),
                                           ),
-                                  ), /*
-                                  Container(
-                                    decoration: BoxDecoration(
-                                        border: Border.all(
-                                            color: Colors.greenAccent)),
-                                    child: Padding(
-                                      padding: EdgeInsets.all(5.0),
-                                      child: Container(
-                                        height: 140,
-                                        width: 150,
-                                        decoration: BoxDecoration(
-                                          borderRadius: BorderRadius.all(
-                                              Radius.circular(8.0)),
-                                          image: DecorationImage(
-                                            image: NetworkImage(
-                                                'https://firebasestorage.googleapis.com/v0/b/myweb-72a93.appspot.com/o/govipiyasa%2Fshop.jpg?alt=media&token=fbe35e0b-76fc-4f7c-ad9b-730b9476860c'),
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                  ),*/
+                                  ),
                                 ]),
                           ),
                         ),
@@ -371,19 +376,13 @@ class _ShowitemState extends State<Showitem> {
                       child: const Center(child: Text('Items', style: TextStyle(fontSize: 18, color: Colors.lightGreen),)),
                     ),
                     Container(
-
                       decoration: BoxDecoration(
                         border: Border.all(color: Colors.blueAccent),
                         borderRadius: BorderRadius.all(Radius.circular(5.0) //                 <--- border radius here
-                        ),
-                      ),
+                        ),),
                       width: 185,
-
                       child: const Center(child: Text('RentItems', style: TextStyle(fontSize: 18, color: Colors.green),)),
-                    ),
-
-
-                  ],
+                    ),],
                 ),
               ),
               Container(
@@ -429,6 +428,7 @@ class _ShowitemState extends State<Showitem> {
 
                                     ),
                                     onTap: () {
+
                                       //Navigator.push(context,MaterialPageRoute(
                                       //builder: (context) => Shopview(text: '${data[index].producyName}',price:'${data[index].description}',image:'https://source.unsplash.com/random?sig=$index',description:'${data[index].description}',quantity:'${data[index].description}',category:'${data[index].description}'),));
                                     },
@@ -499,6 +499,45 @@ class _ShowitemState extends State<Showitem> {
                                     height: 5.0,
                                   ),
                                   GestureDetector(
+                                    child: Container(
+                                      height: 120.0,
+
+                                      margin: EdgeInsets.all(10.0),
+                                      child: Card(
+                                        shape: RoundedRectangleBorder(
+                                          side: BorderSide(color: Colors.green, width: 1),
+                                          borderRadius: BorderRadius.circular(15.0),
+                                        ),
+                                        color: Colors.white,
+                                        elevation: 5,
+                                        child: Row(
+                                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+
+                                          children: <Widget>[
+
+                                            Image.asset(
+                                              'assets/Delivery.png',
+                                              width: 90.0,
+                                              height: 90.0,
+                                              fit: BoxFit.contain,
+                                            ),
+                                            SizedBox(
+                                              width: 15.0,
+                                            ),
+                                            Container(
+                                              child: Text('Domex',
+                                                  style: TextStyle(color: Colors.green, fontSize: 20)),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                    onTap: () {
+                                      Navigator.push(context,
+                                          MaterialPageRoute(builder: (context) =>Delivery()));
+                                    },
+                                  ),
+                                  GestureDetector(
                                     child: Icon(
                                       FontAwesomeIcons.trash,
                                       size: 22.0,
@@ -506,7 +545,7 @@ class _ShowitemState extends State<Showitem> {
                                     ),
                                     onTap: () {
                                      // deletePost(item['_id']);
-                                     // deleteAlbum(item['_id']);
+                                     // deleteItem(item['_id']);
                                   //    deleteWithBodyExample(item['_id']);
                                       DeleteData(item['_id']);
 /*
@@ -527,12 +566,46 @@ class _ShowitemState extends State<Showitem> {
                       );
                     }),
               ),
+              OutlinedButton(
+                style: OutlinedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(horizontal: 40),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                ),
+                onPressed: ()async {
+                 //
+                  alert(context);
+
+                },
+                child: Text("Deactivate shop",
+                    style: TextStyle(
+                      fontSize: 16,
+                      letterSpacing: 2.2,
+                      color: Colors.black,
+                    )),
+              ),
             ],
           ),
         ),
       ),
 
     );
+  }
+
+  void alert(context) {
+    AwesomeDialog(
+      context: context,
+      dialogType: DialogType.INFO,
+      headerAnimationLoop: false,
+      animType: AnimType.BOTTOMSLIDE,
+      title: "Shop Deactivate",
+      buttonsTextStyle: const TextStyle(color: Colors.black),
+      showCloseIcon: true,
+      btnOkOnPress: () {
+        updatestatus(shopid);
+      },
+    ).show();
   }
 
   Future loadImage() async {
@@ -544,3 +617,4 @@ class _ShowitemState extends State<Showitem> {
     print(_imagepath);
   }
 }
+

@@ -3,6 +3,7 @@ import 'package:blogapp/Darkmode/theme.dart';
 import 'package:blogapp/Pages/HomePage.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:provider/provider.dart';
 
@@ -35,7 +36,14 @@ class _SettingsState extends State<Settings> {
       valNotify3 = newValue3;
     });
   }
-
+  String textFromField='Empty';
+  getData()async{
+    String response;
+    response =await rootBundle.loadString('assets/policy/policy.txt');
+    setState(() {
+      textFromField=response;
+    });
+  }
   @override
   Widget build(BuildContext context) {
     return Consumer<ThemeNotifier>(
@@ -72,7 +80,7 @@ class _SettingsState extends State<Settings> {
                         Row(
                           children: [
                             Icon(
-                              Icons.person,
+                              Icons.wb_sunny,
                               color: Colors.blue,
                             ),
                             SizedBox(
@@ -143,58 +151,59 @@ class _SettingsState extends State<Settings> {
                         SizedBox(height: 40),
                         Row(
                           children: [
-                            Icon(Icons.volume_up_outlined, color: Colors.blue),
+                            Icon(Icons.local_police_outlined, color: Colors.blue),
+                            SizedBox(width: 10),
+                            Text("Policy", style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
                             SizedBox(width: 40),
-                            Text("Notification",
-                                style: TextStyle(
-                                    fontSize: 22, fontWeight: FontWeight.bold)),
+                            OutlinedButton(
+                              style: OutlinedButton.styleFrom(
+                                padding:
+                                const EdgeInsets.symmetric(horizontal: 10),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(20),
+                                ),
+                              ),
+                              onPressed: () {
+                                getData();
+                                showPolicy(context);
+                              },
+                              child: Text("Read Policy",
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    letterSpacing: 2.2,
+                                    color: Colors.black,
+                                  )),
+                            ),
                           ],
                         ),
                         Divider(
                           height: 20,
                           thickness: 1,
                         ),
-                        SizedBox(height: 40),
-                        buildNotificationOption(
+                      //  SizedBox(height: 40),
+                /*        buildNotificationOption(
                             "Theme", valNotify1, onChangeFunction1),
                         buildNotificationOption(
                             "Account Active", valNotify2, onChangeFunction2),
                         buildNotificationOption(
-                            "Theme", valNotify3, onChangeFunction3),
-                        SizedBox(
-                          height: 50,
-                        ),
-             /*           Center(
-                          child: OutlinedButton(
-                            style: OutlinedButton.styleFrom(
-                              padding:
-                                  const EdgeInsets.symmetric(horizontal: 40),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(20),
-                              ),
-                            ),
-                            onPressed: () {
-                              theme.setLightMode();
-                              *//*  Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) =>   Dark(),),
-                    );*//*
-                            },
-                            child: Text("Signout",
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  letterSpacing: 2.2,
-                                  color: Colors.black,
-                                )),
-                          ),
-                        ),*/
+                            "Theme", valNotify3, onChangeFunction3),*/
                       ],
                     )),
               ),
             ));
   }
 
+    showPolicy(context) {
+    showDialog<String>(
+    context: context,
+      builder: (BuildContext context) => AlertDialog(
+       content: SingleChildScrollView(
+       child: Text(textFromField),
+    ),
+
+    ),
+    );
+    }
   Padding buildNotificationOption(
       String title, bool value, Function onChangeMethod) {
     return Padding(
@@ -238,7 +247,9 @@ class _SettingsState extends State<Settings> {
                     Text("Option 2"),
                   ],
                 ),
-                actions: [TextButton(onPressed: () {}, child: Text("Close"))],
+                actions: [TextButton(onPressed: () {
+                  //await flutterLocalNotificationsPlugin.cancelAll();
+                }, child: Text("Close"))],
               );
             });
       },

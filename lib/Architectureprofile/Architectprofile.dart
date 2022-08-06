@@ -1,7 +1,8 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:awesome_dialog/awesome_dialog.dart';
 import 'package:blogapp/checkout/widgets/itemdetails.dart';
-import 'package:blogapp/shop/ShopProfile/Chart.dart';
+import 'package:flutter/services.dart';
 import 'package:blogapp/shop/DataModel.dart';
 import 'package:blogapp/shop/itemservice.dart';
 import 'package:blogapp/shop/ShopProfile/updateitem.dart';
@@ -13,103 +14,74 @@ import 'package:http/http.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
 import 'package:fluttertoast/fluttertoast.dart';
 
-import 'AppointmentSlot.dart';
 import 'EditArchitecture.dart';
 import 'constants.dart';
 
 class Architectprofile extends StatefulWidget {
+
   _ArchitectprofileState createState() => _ArchitectprofileState();
 }
 
-class _ArchitectprofileState extends State<Architectprofile> {
-  final Itemservice api = Itemservice();
+class _ArchitectprofileState extends State<Architectprofile>{
   final storage = FlutterSecureStorage();
   File _image;
   final picker = ImagePicker();
   String businessName;
   String email;
   String shopid;
+  String arcid;
   String description;
   String motto;
+
   var _architecture;
   String _imagepath;
-  List<Widget> widgets = [Architectprofile(), Appointmentslot()];
 
+  void readuser() async {
+    //ID = await storage.read(key: "id");
+    String array= await storage.read(key: "array");
+    Fluttertoast.showToast(
+      msg: array,
+      toastLength: Toast.LENGTH_SHORT,
+      gravity: ToastGravity.BOTTOM,
+      backgroundColor: Colors.red,
+      textColor: Colors.white,
+      fontSize: 16.0,
+    );
+  }
   void fetcharchitect() async {
     print('architect');
     String token = await storage.read(key: "token");
     try {
       final response = await get(
           Uri.parse(
-              'https://govi-piyasa-v-0-1.herokuapp.com/api/v1/architects/getUsersArchitectProfile'),
+              'https://govi-piyasa-v-0-1.herokuapp.com/api/v1/architects/getUsersArchitect'),
           headers: {
             'Accept': 'application/json',
             'Authorization': 'Bearer $token',
           });
       print('Token : ${token}');
 
-      print('ERROR architect : ${response.body}');
+      print('Single architect : ${response.body}');
       final jsonData = jsonDecode(response.body)['data'];
+      print(jsonData);
       setState(() {
         _architecture = jsonData;
         businessName = _architecture['businessName'].toString();
-        businessName = _architecture['description'].toString();
-        businessName = _architecture['motto'].toString();
+        description = _architecture['description'].toString();
+        motto = _architecture['motto'].toString();
         email = _architecture['email'].toString();
-        shopid = _architecture['_id'].toString();
+        arcid = _architecture['_id'].toString();
+       // arcid = _architecture['awards'];
       });
     } catch (err) {}
   }
 
   var _architectjson = [];
   var selectedCard = 'WEIGHT';
-  void fetchloggedArchitect() async {
-    print('item');
-    String token = await storage.read(key: "token");
-    try {
-      final response = await get(
-          Uri.parse(
-              'https://govi-piyasa-v-0-1.herokuapp.com/api/v1/shops/getUsersShop'),
-          headers: {
-            'Accept': 'application/json',
-            'Authorization': 'Bearer $token',
-          });
-      print('Token : ${token}');
 
-      print('Architect : ${response.body}');
-      final jsonData = jsonDecode(response.body)['data']['shopItems'];
-      setState(() {
-        _architectjson = jsonData;
-      });
-    } catch (err) {}
-  }
 
-  int _selectedIndex = 0;
-  static const TextStyle optionStyle =
-      TextStyle(fontSize: 30, fontWeight: FontWeight.bold);
-  static const List<Widget> _widgetOptions = <Widget>[
-    Text(
-      'Index 0: Home',
-      style: optionStyle,
-    ),
-    Text(
-      'Index 1: Business',
-      style: optionStyle,
-    ),
-    Text(
-      'Index 2: School',
-      style: optionStyle,
-    ),
-  ];
-
-  void _onItemTapped(int index) {
-    setState(() {
-      _selectedIndex = index;
-    });
-  }
 
   void SaveImage(path) async {
     SharedPreferences pref = await SharedPreferences.getInstance();
@@ -163,121 +135,231 @@ class _ArchitectprofileState extends State<Architectprofile> {
     setState(() {
       _image = File(image.path);
     });
+    SaveImage(_image.path);
   }
-
+  // AnimationController controller;
   void initState() {
-    fetchloggedArchitect();
     loadImage();
+    readuser();
     fetcharchitect();
     super.initState();
   }
 
+  Future<Item> Block(String id) async {
+    print(id);
+    final response = await http.put(
+      Uri.parse('https://govi-piyasa-v-0-1.herokuapp.com/api/v1/shops/setShopVisibility/$id'),
+      headers: <String, String>{
+        'Content-Type': 'application/json; charset=UTF-8',
+      },
+      body: jsonEncode(<String, dynamic>{
+        'status':"Block",
+
+      }),
+    );
+    print(response.body);
+
+    if (response.statusCode == 200) {
+      return Item.fromJson(jsonDecode(response.body));
+    } else {
+
+      throw Exception('Failed to Deactivate.');
+    }
+  }
   @override
   Widget build(BuildContext context) {
-    String city = "Ja-ela";
     return Scaffold(
-      //AssetImage("assets/architect.jpg")
-      body: Container(
+      body:_architecture==null?Center(child: CircularProgressIndicator()):Container(
         margin: const EdgeInsets.all(10.0),
-        decoration: BoxDecoration(
-            border: Border.all(color: Colors.blueAccent, width: 1)),
-        child: SingleChildScrollView(
+
+        child:SingleChildScrollView(
           child: Column(
             children: [
-              Text(
-                "${businessName.toString()}",
-                style: TextStyle(
-                  color: Colors.red,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 30.0,
-                ),
-              ),
               Container(
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    Padding(
-                      padding: EdgeInsets.only(right: 1.0),
-                      child: Material(
-                        type: MaterialType.transparency,
-                        child: Ink(
-                          decoration: BoxDecoration(
-                            border: Border.all(color: Colors.green, width: 2.0),
-                            color: Colors.lightGreen,
-                            shape: BoxShape.circle,
-                          ),
-                          child: InkWell(
-                            borderRadius: BorderRadius.circular(500.0),
-                            onTap: () {
-                              Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => EditArchitect(
-                                        id: "${shopid}",
-                                        businessName: "${businessName}",
-                                        email: "${email}",
-                                        motto: "${motto}",
-                                        description: "${description}"),
-                                  ));
-                            },
-                            child: Padding(
-                              padding: EdgeInsets.all(2.0),
-                              child: Icon(
-                                Icons.arrow_drop_down_circle,
-                                size: 25.0,
-                                color: Colors.blue,
+                decoration: BoxDecoration(
+                  border: Border.all(color: Colors.blueAccent),
+                  borderRadius: BorderRadius.only(
+                    topLeft: Radius.circular(22),
+                    topRight: Radius.circular(22),
+                    bottomLeft: Radius.circular(22),
+                    bottomRight: Radius.circular(22),
+                  ),
+                ),
+                child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Center(
+                        child: Container(
+                            padding: EdgeInsets.all(8),
+
+                            child:Text(
+                              "${businessName.toString()}",
+                              style: TextStyle(
+                                color: Colors.red,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 30.0,
                               ),
                             ),
-                          ),
                         ),
                       ),
-                    ),
-                  ],
-                ),
-              ),
-              Container(
-                child: Center(
-                  child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        Container(
-                          child: Center(
-                            child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.center,
-                                children: [
-                                  Container(
-                                    child: _image != null
-                                        ? Container(
-                                            height: 150,
-                                            width: 150,
-                                            decoration: BoxDecoration(
-                                              borderRadius: BorderRadius.all(
-                                                  Radius.circular(8.0)),
-                                              image: DecorationImage(
-                                                image: NetworkImage(
-                                                    'https://govibucket01.s3.amazonaws.com/N1xVmQtgz-devil_may_cry_character_wings_army_light_sword_21828_1920x1080.jpg'),
+
+                      SizedBox(height: 5.0),
+
+                      Container(
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [
+                            Padding(
+                              padding: EdgeInsets.only(right: 1.0),
+                              child: Material(
+                                type: MaterialType.transparency,
+                                child: Ink(
+                                  decoration: BoxDecoration(
+                                    border: Border.all(color: Colors.green, width: 2.0),
+                                    color: Colors.lightGreen,
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: InkWell(
+                                    borderRadius: BorderRadius.circular(500.0),
+                                    onTap: () {
+                                      Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) => EditArchitect(
+                                                id: "${shopid}",
+                                                businessName: "${businessName}",
+                                                email: "${email}",
+                                                motto: "${motto}",
+                                                description: "${description}"),
+                                          ));
+                                    },
+                                    child: Padding(
+                                      padding: EdgeInsets.all(2.0),
+                                      child: Icon(
+                                        Icons.edit,
+                                        size: 25.0,
+                                        color: Colors.blue,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Container(
+                        child: Center(
+                          child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: [
+                                Container(
+                                  child: Center(
+                                    child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.center,
+                                        children: [
+                                          Container(
+                                            child: _image != null
+                                                ? Container(
+                                              height: 130,
+                                              width: 130,
+                                              decoration: BoxDecoration(
+                                                borderRadius: BorderRadius.all(
+                                                    Radius.circular(8.0)),
+                                                image: DecorationImage(
+                                                  image: NetworkImage(
+                                                      'https://govibucket01.s3.amazonaws.com/N1xVmQtgz-devil_may_cry_character_wings_army_light_sword_21828_1920x1080.jpg'),
+                                                ),
                                               ),
-                                            ),
-                                          )
-                                        : Container(
-                                            height: 150,
-                                            width: 150,
-                                            decoration: BoxDecoration(
-                                              borderRadius: BorderRadius.all(
-                                                  Radius.circular(8.0)),
-                                              image: DecorationImage(
-                                                image: NetworkImage(
-                                                    'https://firebasestorage.googleapis.com/v0/b/myweb-72a93.appspot.com/o/govipiyasa%2Fshop.jpg?alt=media&token=fbe35e0b-76fc-4f7c-ad9b-730b9476860c'),
+                                            )
+                                                : Container(
+                                              height: 130,
+                                              width: 130,
+                                              decoration: BoxDecoration(
+                                                borderRadius: BorderRadius.all(
+                                                    Radius.circular(8.0)),
+                                                image: DecorationImage(
+                                                  image: NetworkImage(
+                                                      'https://firebasestorage.googleapis.com/v0/b/myweb-72a93.appspot.com/o/govipiyasa%2Fshop.jpg?alt=media&token=fbe35e0b-76fc-4f7c-ad9b-730b9476860c'),
+                                                ),
                                               ),
                                             ),
                                           ),
+                                          Center(
+                                            child: Text(
+                                              "${email}",
+                                              style: TextStyle(
+                                                color: Colors.black,
+                                                fontSize: 15.0,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
+                                          ),
+                                          SizedBox(
+                                            height: 50,
+                                            child: Center(
+                                              child: Column(children: [
+                                                GestureDetector(
+                                                  child: Row(
+                                                      mainAxisAlignment: MainAxisAlignment.center,
+                                                      children: [
+                                                        IconButton(
+                                                            onPressed: () {
+                                                              chooseImage(ImageSource.gallery);
+                                                            },
+                                                            icon: Icon(Icons.camera_alt_sharp)),
+                                                      ]),
+                                                ),
+                                              ]),
+                                            ),
+                                          ),
+                                        ]),
                                   ),
-                                ]),
+                                ),
+                              ]),
+                        ),
+                      ),
+                    ]),
+
+              ),
+
+              SizedBox(height: 5,),
+              Container(
+
+                  child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        Center(
+                          child: Container(
+                              padding: EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: Colors.lightBlue,
+                              borderRadius: BorderRadius.only(
+                                topLeft: Radius.circular(22),
+                                topRight: Radius.circular(22),
+                                bottomLeft: Radius.circular(22),
+                                bottomRight: Radius.circular(22),
+                              ),
+                            ),
+                            child:Center(
+                              child: motto==null?Center(child: CircularProgressIndicator()):Text(
+                                "${motto}",
+                                style: TextStyle(
+                                  color: Colors.black,
+                                  fontSize: 15.0,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            )
                           ),
                         ),
+
+                        SizedBox(height: 5.0),
                       ]),
-                ),
+
               ),
               Container(
                 padding: EdgeInsets.symmetric(
@@ -287,256 +369,152 @@ class _ArchitectprofileState extends State<Architectprofile> {
                 decoration: BoxDecoration(
                   color: kSecondaryColor,
                   borderRadius: BorderRadius.only(
-                    bottomLeft: Radius.circular(22),
+                    topLeft: Radius.circular(22),
                     topRight: Radius.circular(22),
+                    bottomLeft: Radius.circular(22),
+                    bottomRight: Radius.circular(22),
                   ),
                 ),
-                child: Text(
-                  "${description.toString()}",
-                  style: Theme.of(context).textTheme.button,
-                ),
-              ),
-              Container(
                 child: Center(
-                  child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        Text(
-                          "${motto.toString()}",
-                          style: TextStyle(
-                            color: Colors.blue,
-                            fontSize: 15.0,
-                          ),
-                        ),
-                        SizedBox(
-                          height: 50,
-                          child: Center(
-                            child: Column(children: [
-                              GestureDetector(
-                                child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      IconButton(
-                                          onPressed: () {
-                                            chooseImage(ImageSource.gallery);
-                                          },
-                                          icon: Icon(Icons.camera_alt_sharp)),
-                                      IconButton(
-                                          onPressed: () {
-                                            SaveImage(_image.path);
-                                            Fluttertoast.showToast(
-                                              msg: "Saved",
-                                              toastLength: Toast.LENGTH_SHORT,
-                                              gravity: ToastGravity.BOTTOM,
-                                              backgroundColor: Colors.red,
-                                              textColor: Colors.white,
-                                              fontSize: 16.0,
-                                            );
-                                          },
-                                          icon: Icon(Icons.api_outlined)),
-                                    ]),
-                              ),
-                            ]),
-                          ),
-                        ),
-                        SizedBox(width: 5.0),
-                      ]),
+                  child:Text(
+                    "${description.toString()}",
+                    style: Theme.of(context).textTheme.button,
+                  ),
                 ),
               ),
+              Container(child:Text("Awards",  style: TextStyle(
+                color: Colors.black,
+                fontSize: 25.0,
+                fontWeight: FontWeight.bold,
+              ),),),
+              Container(
+                  height: 150.0,
+                  child: ListView.builder(
+                      itemCount: 5,
+                      scrollDirection: Axis.horizontal,
+                      itemBuilder: (BuildContext context, int index){
+                        return  _buildInfoCard('WEIGHT', '', 'G');
+                      }
+
+
+                  )),
               Divider(),
+              Container(child:Text("Projects",  style: TextStyle(
+                color: Colors.black,
+                fontSize: 25.0,
+                fontWeight: FontWeight.bold,
+              ),),),
               Container(
-                height: 50,
-                child: ListView(
-                  scrollDirection: Axis.horizontal,
-                  children: <Widget>[
-                    Container(
-                      decoration: BoxDecoration(
-                        border: Border.all(color: Colors.blueAccent),
-                        borderRadius: BorderRadius.all(Radius.circular(
-                                5.0) //                 <--- border radius here
-                            ),
-                      ),
-                      width: 185,
-                      child: const Center(
-                          child: Text(
-                        'Items',
-                        style:
-                            TextStyle(fontSize: 18, color: Colors.lightGreen),
-                      )),
-                    ),
-                    Container(
-                      decoration: BoxDecoration(
-                        border: Border.all(color: Colors.blueAccent),
-                        borderRadius: BorderRadius.all(Radius.circular(
-                                5.0) //                 <--- border radius here
-                            ),
-                      ),
-                      width: 185,
-                      child: const Center(
-                          child: Text(
-                        'RentItems',
-                        style: TextStyle(fontSize: 18, color: Colors.green),
-                      )),
-                    ),
-                  ],
+                decoration: BoxDecoration(
+                  border: Border.all(color: Colors.blueAccent),
+                  borderRadius: BorderRadius.only(
+                    topLeft: Radius.circular(22),
+                    topRight: Radius.circular(22),
+                    bottomLeft: Radius.circular(22),
+                    bottomRight: Radius.circular(22),
+                  ),
                 ),
-              ),
-              Container(
-                child: GridView.builder(
-                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 2,
-                    ),
-                    itemCount: _architectjson.length,
-                    physics: NeverScrollableScrollPhysics(),
-                    shrinkWrap: true,
-                    itemBuilder: (context, index) {
-                      final item = _architectjson[index];
-                      return Card(
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(15.0),
-                          side: BorderSide(color: Colors.lightGreen, width: 1),
-                        ),
-                        child: Padding(
-                          padding: const EdgeInsets.all(5.0),
-                          child: ListTile(
-                              onTap: () {
-                                /*   Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => Itemdetails(text: '${data[index].producyName}',price:'${data[index].description}',image:'https://source.unsplash.com/random?sig=$index',description:'${data[index].description}',quantity:'${data[index].description}',category:'${data[index].description}'),
-                                  ));*/
-                              },
-                              title: Column(
-                                children: [
-                                  GestureDetector(
-                                    child: Container(
-                                      width: 100,
-                                      height: 100,
-                                      decoration: BoxDecoration(
-                                        color: Colors.deepPurpleAccent,
-                                        image: DecorationImage(
-                                          image: NetworkImage(
-                                            'https://source.unsplash.com/random?sig=$index',
-                                          ),
-                                        ),
-                                        borderRadius: BorderRadius.circular(10),
-                                      ),
-                                      /*   child: Center(
-                                        child: Text("Rs:${item['price']}",style:TextStyle(color:Colors.white)),
-                                      ),*/
-                                    ),
-                                    onTap: () {
-                                      //Navigator.push(context,MaterialPageRoute(
-                                      //builder: (context) => Shopview(text: '${data[index].producyName}',price:'${data[index].description}',image:'https://source.unsplash.com/random?sig=$index',description:'${data[index].description}',quantity:'${data[index].description}',category:'${data[index].description}'),));
-                                    },
+                height: 200,
+                margin: EdgeInsets.fromLTRB(10, 10, 10, 10),
+                child: ListView.builder(
+                    itemCount: 3,
+                    itemBuilder: (BuildContext context, int index) {
+                      return Container(
+                        margin: EdgeInsets.fromLTRB(10, 0, 10, 0),
+
+                        height: 160,
+                        child: InkWell(
+                          onTap: (){},
+                          child: Stack(
+                            alignment: Alignment.bottomCenter,
+                            children: <Widget>[
+                              // Those are our background
+                              Container(
+                                height: 116,
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(22),
+                                  color: index.isEven ? kBlueColor : kSecondaryColor,
+                                  boxShadow: [kDefaultShadow],
+                                ),
+                                child: Container(
+                                  margin: EdgeInsets.only(right: 10),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(22),
                                   ),
-                                  SizedBox(width: 20),
-                                  Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          "${item['description']}",
-                                          style: TextStyle(
-                                              fontSize: 18,
-                                              fontWeight: FontWeight.w600),
-                                        ),
-                                        Text("Rs:${item['price']}"),
-                                        Container(
-                                            child: Row(children: [
-                                          Text("${item['quantity']}"),
-                                          SizedBox(
-                                            width: 40,
-                                          ),
-                                          GestureDetector(
-                                            child: Icon(
-                                              FontAwesomeIcons.eye,
-                                              size: 25.0,
-                                              color: Colors.red,
-                                            ),
-                                            onTap: () {
-                                              Navigator.push(
-                                                  context,
-                                                  MaterialPageRoute(
-                                                    builder: (context) => Itemdetails(
-                                                        text:
-                                                            '${item['productName']}',
-                                                        price:
-                                                            '${item['price']}',
-                                                        image:
-                                                            'https://source.unsplash.com/random?sig=$index',
-                                                        description:
-                                                            '${item['description']}',
-                                                        quantity:
-                                                            '${item['quantity']}',
-                                                        category:
-                                                            '${item['categoryName']}'),
-                                                  ));
-                                            },
-                                          ),
-                                        ]))
-                                      ])
-                                ],
+                                ),
                               ),
-                              trailing: Column(
-                                crossAxisAlignment: CrossAxisAlignment.end,
-                                children: [
-                                  GestureDetector(
-                                    child: Icon(
-                                      FontAwesomeIcons.edit,
-                                      size: 22.0,
-                                      color: Colors.red,
-                                    ),
-                                    onTap: () {
-                                      Navigator.push(
-                                          context,
-                                          MaterialPageRoute(
-                                            builder: (context) => Updateitem(
-                                                id: '${item['_id']}',
-                                                productName:
-                                                    '${item['productName']}',
-                                                description:
-                                                    '${item['description']}',
-                                                price: '${item['price']}',
-                                                quantity: '${item['quantity']}',
-                                                categoryName:
-                                                    '${item['categoryName']}',
-                                                image: '${item['image']}'),
-                                          ));
-                                    },
+                              // our product image
+                              Positioned(
+                                top: 20,
+                                right: 0,
+                                child: Hero(
+                                  tag: 'mk',
+                                  child: Container(
+                                    padding: EdgeInsets.symmetric(horizontal: kDefaultPadding),
+                                    height: 100,
+                                    // image is square but we add extra 20 + 20 padding thats why width is 200
+                                    width: 180,
+                                    decoration: BoxDecoration(
+                                        borderRadius: BorderRadius.circular(10),
+                                        image: DecorationImage(
+                                            image: NetworkImage(
+                                                "https://source.unsplash.com/random?sig=$index"),
+                                            fit: BoxFit.cover)),
                                   ),
-                                  SizedBox(
-                                    height: 5.0,
+                                ),
+                              ),
+
+                              // Product title and price
+                              Positioned(
+                                bottom: 0,
+                                left: 0,
+                                child: SizedBox(
+                                  height: 106,
+                                  // our image take 200 width, thats why we set out total width - 200
+                                  width:200,
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: <Widget>[
+                                      Spacer(),
+                                      Padding(
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: kDefaultPadding),
+                                        child: Text(
+                                          "nnj",
+                                          style: Theme.of(context).textTheme.button,
+                                        ),
+                                      ),
+                                      // it use the available space
+                                      Spacer(),
+                                      Container(
+                                        padding: EdgeInsets.symmetric(
+                                          horizontal: kDefaultPadding * 1.5, // 30 padding
+                                          vertical: kDefaultPadding / 4, // 5 top and bottom
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: kSecondaryColor,
+                                          borderRadius: BorderRadius.only(
+                                            bottomLeft: Radius.circular(22),
+                                            topRight: Radius.circular(22),
+                                          ),
+                                        ),
+                                        child: Text(
+                                          "\$",
+                                          style: Theme.of(context).textTheme.button,
+                                        ),
+                                      ),
+                                    ],
                                   ),
-                                  GestureDetector(
-                                    child: Icon(
-                                      FontAwesomeIcons.trash,
-                                      size: 22.0,
-                                      color: Colors.red,
-                                    ),
-                                    onTap: () {
-                                      // deletePost(item['_id']);
-                                      // deleteAlbum(item['_id']);
-                                      //    deleteWithBodyExample(item['_id']);
-                                      DeleteData(item['_id']);
-/*
-                                      Fluttertoast.showToast(
-                                        msg: "Deleted",
-                                        toastLength: Toast.LENGTH_SHORT,
-                                        gravity: ToastGravity.BOTTOM,
-                                        backgroundColor: Colors.red,
-                                        textColor: Colors.white,
-                                        fontSize: 16.0,
-                                      );*/
-                                    },
-                                  ),
-                                ],
-                              )),
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       );
                     }),
               ),
+          
             ],
           ),
         ),
@@ -558,19 +536,19 @@ class _ArchitectprofileState extends State<Architectprofile> {
           selectCard(cardTitle);
         },
         child: AnimatedContainer(
+            margin: EdgeInsets.all(5),
             duration: Duration(milliseconds: 500),
             curve: Curves.easeIn,
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(10.0),
-              color: cardTitle == selectedCard ? Colors.lightGreen : Colors.white,
+              color:
+              cardTitle == selectedCard ? Colors.lightGreen : Colors.white,
               border: Border.all(
-                  color: cardTitle == selectedCard ?
-                  Colors.transparent :
-                  Colors.grey.withOpacity(0.3),
+                  color: cardTitle == selectedCard
+                      ? Colors.transparent
+                      : Colors.grey.withOpacity(0.3),
                   style: BorderStyle.solid,
-                  width: 0.75
-              ),
-
+                  width: 0.75),
             ),
             height: 100.0,
             width: 100.0,
@@ -584,8 +562,9 @@ class _ArchitectprofileState extends State<Architectprofile> {
                         style: TextStyle(
                           fontFamily: 'Montserrat',
                           fontSize: 12.0,
-                          color:
-                          cardTitle == selectedCard ? Colors.white : Colors.grey.withOpacity(0.7),
+                          color: cardTitle == selectedCard
+                              ? Colors.white
+                              : Colors.grey.withOpacity(0.7),
                         )),
                   ),
                   Padding(
@@ -612,10 +591,21 @@ class _ArchitectprofileState extends State<Architectprofile> {
                       ],
                     ),
                   )
-                ]
-            )
-        )
-    );
+                ])));
+  }
+  void alert(context) {
+    AwesomeDialog(
+      context: context,
+      dialogType: DialogType.INFO,
+      headerAnimationLoop: false,
+      animType: AnimType.BOTTOMSLIDE,
+      title: "Shop Deactivate",
+      buttonsTextStyle: const TextStyle(color: Colors.black),
+      showCloseIcon: true,
+      btnOkOnPress: () {
+        //updateItem(shopid);
+      },
+    ).show();
   }
   selectCard(cardTitle) {
     setState(() {

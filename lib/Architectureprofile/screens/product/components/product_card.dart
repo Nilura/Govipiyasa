@@ -8,12 +8,12 @@ class ProductCard extends StatelessWidget {
   const ProductCard({
     Key key,
     this.itemIndex,
-    this.product,
+    this.title,
     this.press,
   }) : super(key: key);
 
   final int itemIndex;
-  final Product product;
+  final String title;
   final Function press;
 
   @override
@@ -53,16 +53,16 @@ class ProductCard extends StatelessWidget {
               top: 20,
               right: 0,
               child: Hero(
-                tag: '${product.id}',
+                tag: '${title}',
                 child: Container(
                   padding: EdgeInsets.symmetric(horizontal: kDefaultPadding),
                   height: 100,
                   // image is square but we add extra 20 + 20 padding thats why width is 200
                   width: 180,
-                  child: Image.asset(
-                    product.image,
+              /*    child: Image.asset(
+                    product[index][''],
                     fit: BoxFit.cover,
-                  ),
+                  ),*/
                 ),
               ),
             ),
@@ -82,7 +82,7 @@ class ProductCard extends StatelessWidget {
                       padding: const EdgeInsets.symmetric(
                           horizontal: kDefaultPadding),
                       child: Text(
-                        product.title,
+                        title,
                         style: Theme.of(context).textTheme.button,
                       ),
                     ),
@@ -101,7 +101,7 @@ class ProductCard extends StatelessWidget {
                         ),
                       ),
                       child: Text(
-                        "\$${product.price}",
+                        title,
                         style: Theme.of(context).textTheme.button,
                       ),
                     ),

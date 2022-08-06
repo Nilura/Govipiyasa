@@ -25,13 +25,9 @@ class HomePage1 extends StatelessWidget {
         appBar: AppBar(
           toolbarHeight: 70,
           leading: IconButton(
-              icon: Icon(FontAwesomeIcons.arrowLeft,color:Colors.black),
+              icon: Icon(FontAwesomeIcons.arrowLeft),
               onPressed: () {
-                Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => HomePage(),
-                    ));
+                Navigator.pop(context);
               }),
           backgroundColor: Colors.white,
           title: Container(

@@ -34,7 +34,7 @@ class _SellerListState extends State<SellerList> {
       "expertId":id
     };
     http.post(
-      "https://govi-piyasa-v-0-1.herokuapp.com/api/v1/rating",body:jsonEncode(body),
+      "https://govi-piyasa-v-0-1.herokuapp.com/api/v1/ratings",body:jsonEncode(body),
       headers: {
         "Content-Type": "application/json",
         'Authorization': 'Bearer $token',
@@ -88,7 +88,8 @@ class _SellerListState extends State<SellerList> {
   }
 
 
-  double rating;
+  double rating=0.0;
+  double rating1;
 
   void lanchwhatsapp({@required number, @required message}) async {
     String url = "whatsapp://send?phone=$number&text=$message";
@@ -119,11 +120,10 @@ class _SellerListState extends State<SellerList> {
     super.initState();
     //  getUsers();
     setState(() {
-      this.rating = 5;
+     // this.rating = 5;
     });
 
     fetchPosts();
-    // fetchData();
   }
 
   Future<Null> refreshList2() async {
@@ -157,99 +157,103 @@ class _SellerListState extends State<SellerList> {
           child: ListView.builder(
               itemCount: _postsJson.length,
               itemBuilder: (BuildContext context, index) {
+
                 final post = _postsJson[index];
-                return GestureDetector(
-                  child:Container(
-                    margin: const EdgeInsets.all(20.0),
-                    decoration: BoxDecoration(
-                      border: Border.all(color: Colors.blueAccent),
-                      borderRadius: BorderRadius.all(Radius.circular(
-                          5.0) //                 <--- border radius here
+                if(_postsJson.length==0){
+                  return SizedBox.shrink();
+                }else{
+                  return GestureDetector(
+                    child:Container(
+                      margin: const EdgeInsets.all(20.0),
+                      decoration: BoxDecoration(
+                        border: Border.all(color: Colors.blueAccent),
+                        borderRadius: BorderRadius.all(Radius.circular(
+                            5.0) //                 <--- border radius here
+                        ),
+                      ),
+                      child: ListTile(
+                        leading: Image.network("https://source.unsplash.com/random?sig=$index"),
+                        title: Text("${post['email']}",style: TextStyle(
+                            fontSize: 15,
+                            color:Colors.black,
+                            fontFamily: 'Varela',
+                            fontWeight: FontWeight.bold)),
+                        subtitle: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: <Widget>[
+                            Text("Designation:${post['designation']}"),
+                            Text("City:${post['city']}"),
+                            Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text("Contact:+94${post['contactNumber']}"),]),
+
+                            Row(
+                                children: [
+                                Text("${post['rating'].toString()}",style: TextStyle(
+                                      color:Colors.amber)),
+                        buildRating1(double.parse(post['rating'].toString())),
+                                ]),
+                            Row(
+                              children: [
+                                TextButton(
+                                  child: Text(
+                                    'Rate',
+                                    style: TextStyle(fontSize: 14,color:Colors.red),
+                                  ),
+                                  onPressed: () => showRating(post['_id']),
+                                ),
+                                TextButton(
+                                  child: Text(
+                                    'Review',
+                                    style: TextStyle(fontSize: 14),
+                                  ),
+                                  onPressed: () => showReview(post['_id']),
+                                ),
+                              ],
+                            ),
+
+                          ],
+                        ),
+                        trailing: Column(
+                            children:[
+                              GestureDetector(
+                                child: Icon(MyFlutterApp.whatsapp),
+                                onTap: () {
+                                  lanchwhatsapp(
+                                      number: "+94${post['contactNumber']}", message: "hello");
+                                },
+                              ),
+                              SizedBox(height: 5,),
+                              GestureDetector(
+                                child: Icon(Icons.settings_phone_rounded),
+                                onTap: () {
+                                  launch("tel://+94${post['contactNumber']}");
+                                  // launch("mailto:ashennilura@gmail.com?subject=Meeting&body=Can we meet via Google Meet");
+                                },
+                              ),
+                            ]
+                        ),
+                        isThreeLine: true,
                       ),
                     ),
-                    child: ListTile(
-                      leading: Image.network("https://source.unsplash.com/random?sig=$index"),
-                      title: Text("Name:${post['userName']}",style: TextStyle(
-                          fontSize: 15,
-                          color:Colors.black,
-                          fontFamily: 'Varela',
-                          fontWeight: FontWeight.bold)),
-                      subtitle: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: <Widget>[
-                          Text("Designation:${post['designation']}"),
-                          Text("City:${post['city']}"),
-                          Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text("Contact:+94${post['contactNumber']}"),]),
+                    onTap: (){
+                      Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => expertView(
+                                designation:"${post['designation']}",
+                                description:"${post['description']}",
+                                city:"${post['city']}",
+                                contact:"${post['contactNumber']}",
+                                name:"${post['city']}",
+                                qualification:"${post['Qualification']}",
+                                image:"https://source.unsplash.com/random?sig=$index",
+                              )));
+                    },
+                  );
+                }
 
-                          Row(
-                              children: [
-                                Text("${post['rating'].toStringAsFixed(3)}",style: TextStyle(
-                                    color:Colors.amber)),
-                                buildRating1(post['rating']),
-                              ]),
-                          Row(
-                            children: [
-                              TextButton(
-                                child: Text(
-                                  'Rate',
-                                  style: TextStyle(fontSize: 14,color:Colors.red),
-                                ),
-                                onPressed: () => showRating(post['_id']),
-                              ),
-                              TextButton(
-                                child: Text(
-                                  'Review',
-                                  style: TextStyle(fontSize: 14),
-                                ),
-                                onPressed: () => showReview(post['_id']),
-                              ),
-                            ],
-                          ),
-
-                        ],
-                      ),
-                      trailing: Column(
-                          children:[
-                            GestureDetector(
-                              child: Icon(MyFlutterApp.whatsapp),
-                              onTap: () {
-                                lanchwhatsapp(
-                                    number: "+94${post['contactNumber']}", message: "hello");
-                              },
-                            ),
-                            SizedBox(height: 5,),
-                            GestureDetector(
-                              child: Icon(Icons.settings_phone_rounded),
-                              onTap: () {
-                                launch("tel://+94${post['contactNumber']}");
-                                // launch("mailto:ashennilura@gmail.com?subject=Meeting&body=Can we meet via Google Meet");
-                              },
-                            ),
-                          ]
-                      ),
-                      isThreeLine: true,
-                    ),
-                  ),
-                  onTap: (){
-                    Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) => expertView(
-                              designation:"${post['designation']}",
-                              description:"${post['description']}",
-                             city:"${post['city']}",
-                             contact:"${post['contactNumber']}",
-                             name:"${post['city']}",
-                            qualification:"${post['Qualification']}",
-                              list:_postsJson[index]['expertReviews'],
-                            rating:"${post['rating']}",
-                            docs:_postsJson[index]['proofDocuments'],
-                            image:"https://source.unsplash.com/random?sig=$index",)));
-                  },
-                );
 
               }),
         ));
@@ -260,7 +264,7 @@ class _SellerListState extends State<SellerList> {
         itemSize: 18,
         itemPadding: EdgeInsets.symmetric(horizontal: 4),
         itemBuilder: (context, _) => Icon(Icons.star, color: Colors.amber),
-        updateOnDrag: false,
+        updateOnDrag: true,
         onRatingUpdate: (rating) => setState(() {
           this.rating = rating;
         }),
@@ -269,13 +273,11 @@ class _SellerListState extends State<SellerList> {
   Widget buildRating1(rating) => RatingBar.builder(
         minRating: 1,
         itemSize: 18,
-    initialRating: rating,
+        initialRating: rating,
         itemPadding: EdgeInsets.symmetric(horizontal: 4),
         itemBuilder: (context, _) => Icon(Icons.star, color: Colors.amber),
         updateOnDrag: false,
-        onRatingUpdate: (rating) => setState(() {
-          this.rating = rating;
-        }),
+
       );
 
   void showRating(id) => showDialog(
@@ -306,7 +308,7 @@ class _SellerListState extends State<SellerList> {
                   await Future.delayed(Duration(seconds: 3));
                   Navigator.pop(context);
                   Fluttertoast.showToast(
-                    msg: "successfull",
+                    msg: "successfully",
                     toastLength: Toast.LENGTH_SHORT,
                     gravity: ToastGravity.BOTTOM,
                     backgroundColor: Colors.red,

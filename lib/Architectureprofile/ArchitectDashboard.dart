@@ -1,3 +1,5 @@
+import 'package:awesome_dialog/awesome_dialog.dart';
+import 'package:blogapp/Architectureprofile/screens/ArchitectureProjects.dart';
 import 'package:blogapp/Architectureprofile/screens/product/products_screen.dart';
 import 'package:blogapp/Notification/local_notifications.dart';
 import 'package:blogapp/Pages/HomePage.dart';
@@ -11,11 +13,13 @@ import 'package:blogapp/shop/ShopProfile/shoprofile.dart';
 import 'package:blogapp/shop/ShopProfile/updateitem.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 import 'AppointmentSlot.dart';
 import 'Architectprofile.dart';
+import 'addProjects.dart';
 
 
 class Architectdashboard extends StatefulWidget {
@@ -27,25 +31,12 @@ class _ArchitectdashboardState extends State<Architectdashboard> {
   final Itemservice api = Itemservice();
   final storage = FlutterSecureStorage();
 
-  List<Widget> widgets = [Architectprofile(), Appointmentslot(), ProductsScreen()];
+  List<Widget> widgets = [Architectprofile(), Appointmentslot(), ArchitectProject()];
 
   int _selectedIndex = 0;
   static const TextStyle optionStyle =
   TextStyle(fontSize: 30, fontWeight: FontWeight.bold);
-  static const List<Widget> _widgetOptions = <Widget>[
-    Text(
-      'Index 0: Home',
-      style: optionStyle,
-    ),
-    Text(
-      'Index 1: Business',
-      style: optionStyle,
-    ),
-    Text(
-      'Index 2: School',
-      style: optionStyle,
-    ),
-  ];
+
 
   void _onItemTapped(int index) {
     setState(() {
@@ -55,22 +46,26 @@ class _ArchitectdashboardState extends State<Architectdashboard> {
   }
 
   void initState() {
+
     super.initState();
   }
 
+  String textFromField='Loading....';
+  getData()async{
+    String response;
+    response =await rootBundle.loadString('assets/policy/policy.txt');
+    setState(() {
+      textFromField=response;
+    });
+  }
   @override
   Widget build(BuildContext context) {
-    String city = "Ja-ela";
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
             icon: Icon(FontAwesomeIcons.arrowLeft),
             onPressed: () {
-              Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => HomePage(),
-                  ));
+              Navigator.pop(context);
             }),
         title: Text(
           "My Architecture Profile",
@@ -84,6 +79,13 @@ class _ArchitectdashboardState extends State<Architectdashboard> {
               icon: Icon(FontAwesomeIcons.plus),
               onPressed: () {
                 showPopUp(context);
+              }),
+
+          IconButton(
+              icon: Icon(Icons.integration_instructions),
+              onPressed: () {
+                getData();
+                showPolicy(context);
               }),
 
         ],
@@ -112,6 +114,17 @@ class _ArchitectdashboardState extends State<Architectdashboard> {
     );
   }
 
+  showPolicy(context) {
+    showDialog<String>(
+      context: context,
+      builder: (BuildContext context) => AlertDialog(
+        content: SingleChildScrollView(
+          child: Text(textFromField),
+        ),
+
+      ),
+    );
+  }
   showPopUp(context) {
     showDialog<String>(
       context: context,
@@ -122,11 +135,11 @@ class _ArchitectdashboardState extends State<Architectdashboard> {
               Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => AddItem(),
+                    builder: (context) => Addprojects(),
                   ));
             },
             child: ListTile(
-              title: Text('Add equipment'),
+              title: Text('Add Projects'),
               leading: CircleAvatar(
                   child: Image.network(
                     "https://protocoderspoint.com/wp-content/uploads/2020/10/PROTO-CODERS-POINT-LOGO-water-mark-.png",
@@ -134,22 +147,23 @@ class _ArchitectdashboardState extends State<Architectdashboard> {
                   )),
             ),
           ),
-          GestureDetector(
-            onTap: () {
-              Navigator.of(context).push(
-                  MaterialPageRoute(builder: (context) => AddItem()));
-            },
-            child: ListTile(
-              title: Text('Add items'),
-              leading: CircleAvatar(
-                  child: Image.network(
-                    "https://protocoderspoint.com/wp-content/uploads/2020/10/PROTO-CODERS-POINT-LOGO-water-mark-.png",
-                    fit: BoxFit.scaleDown,
-                  )),
-            ),
-          ),
+
         ],
       ),
     );
+  }
+  void alert(context) {
+    AwesomeDialog(
+      context: context,
+      dialogType: DialogType.ERROR,
+      headerAnimationLoop: false,
+      animType: AnimType.BOTTOMSLIDE,
+      title: "Shop Deactivate",
+      buttonsTextStyle: const TextStyle(color: Colors.black),
+      showCloseIcon: false,
+      btnOkOnPress: () {
+
+      },
+    ).show();
   }
 }

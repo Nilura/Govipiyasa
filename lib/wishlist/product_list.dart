@@ -140,7 +140,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
                 showBadge: true,
                 badgeContent: Consumer<CartProvider1>(
                   builder: (context, value, child) {
-                    return Text(value.getCounter().toString(),
+                    return Text(value.getCounter1().toString(),
                         style: TextStyle(color: Colors.white));
                   },
                 ),

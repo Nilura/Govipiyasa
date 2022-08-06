@@ -32,7 +32,7 @@ class Updateitem extends StatefulWidget {
   State<Updateitem> createState() => _UpdateitemState(id,productName,description,price,quantity,categoryName,image);
 }
 
-class Album {
+class Item {
   final String id;
   final String productName;
   final String description;
@@ -41,10 +41,10 @@ class Album {
   final String categoryName;
   final String image;
 
-  const Album({@required this.id, @required this.productName,@required this.description,@required this.price,@required this.quantity,@required this.categoryName,@required this.image});
+  const Item({@required this.id, @required this.productName,@required this.description,@required this.price,@required this.quantity,@required this.categoryName,@required this.image});
 
-  factory Album.fromJson(Map<String, dynamic> json) {
-    return Album(
+  factory Item.fromJson(Map<String, dynamic> json) {
+    return Item(
       id: json['_id'],
       productName: json['productName'],
       description: json['description'],
@@ -58,7 +58,7 @@ class Album {
 class _UpdateitemState extends State<Updateitem> {
   _UpdateitemState(this.id,this.productName, this.description, this.price, this.quantity, this.categoryName, this.image);
 
-  Future<Album> updateAlbum(String id,String productName,String description, String price ,String quantity,String categoryName,String image) async {
+  Future<Item> updateItem(String id,String productName,String description, String price ,String quantity,String categoryName,String image) async {
     print(id);
     final response = await http.put(
       Uri.parse('https://govi-piyasa-v-0-1.herokuapp.com/api/v1/items/$id'),
@@ -80,7 +80,7 @@ class _UpdateitemState extends State<Updateitem> {
     if (response.statusCode == 200) {
       // If the server did return a 200 OK response,
       // then parse the JSON.
-      return Album.fromJson(jsonDecode(response.body));
+      return Item.fromJson(jsonDecode(response.body));
     } else {
       // If the server did not return a 200 OK response,
       // then throw an exception.
@@ -244,7 +244,7 @@ TextEditingController _image = TextEditingController();
                           onPressed:() async{
                             setState(()=>isloading=true);
                             await Future.delayed(const Duration(seconds: 5));
-            updateAlbum(id,_itemname.text,_description.text, _price.text,  _qty.text,   _category.text,  _image.text);
+            updateItem(id,_itemname.text,_description.text, _price.text,  _qty.text,   _category.text,  _image.text);
 
                             setState(()=>isloading=false);
                             await Future.delayed(const Duration(seconds: 1));

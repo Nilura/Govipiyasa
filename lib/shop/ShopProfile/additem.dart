@@ -1,26 +1,17 @@
-
-
-
-
-
+import 'dart:convert';
 import 'dart:io';
-
 import 'package:blogapp/Notification/destination_screen.dart';
 import 'package:blogapp/Notification/local_notifications.dart';
 import 'package:blogapp/shop/ShopProfile/shoprofile.dart';
-import 'package:firebase_ml_vision/firebase_ml_vision.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_typeahead/flutter_typeahead.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
-
 import 'package:logger/logger.dart';
-
 import '../itemservice.dart';
 
 class AddItem extends StatefulWidget {
@@ -31,11 +22,12 @@ class AddItem extends StatefulWidget {
 
 class _AddItemState extends State<AddItem> {
   FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
-  final ImageLabeler imageLabeler = FirebaseVision.instance.imageLabeler();
+ // final ImageLabeler imageLabeler = FirebaseVision.instance.imageLabeler();
   var result;
   List<String> strArr = ['choose your item'];
   @override
   void initState() {
+    writeuser();
     super.initState();
     requestPermissions();
     var androidSettings = AndroidInitializationSettings('app_icon');
@@ -48,6 +40,9 @@ class _AddItemState extends State<AddItem> {
     var initSetttings = InitializationSettings(androidSettings, iOSSettings);
     flutterLocalNotificationsPlugin.initialize(initSetttings, onSelectNotification: onClickNotification);
 
+  }
+  void writeuser() async{
+    await storage.write(key: "array", value:strArr.toString());
   }
 
   void requestPermissions() {
@@ -273,7 +268,7 @@ final picker=ImagePicker();
                           height: 10,
                         ),
 
-                        Container(
+                /*        Container(
                           child:Center(
                             child:Padding(
                               padding:const EdgeInsets.all(16.0),
@@ -312,7 +307,7 @@ final picker=ImagePicker();
                             ),
 
                           ),
-                          /*
+                          *//*
                           child: TextFormField(
                             decoration: InputDecoration(
                               labelText: 'Deliverystatus(yes/no)',
@@ -321,8 +316,8 @@ final picker=ImagePicker();
                             onChanged: (val){
                               deliverystatus=val;
                             },
-                          ),*/
-                        ),
+                          ),*//*
+                        ),*/
                         RaisedButton(
                           padding: EdgeInsets.fromLTRB(70, 10, 70, 10),
                           onPressed:(){
@@ -367,14 +362,14 @@ final picker=ImagePicker();
     setState(() {
       if (pickedFile != null) {
         _image = File(pickedFile.path);
-        processImageLabels();
+        //processImageLabels();
       } else {
         print('No image selected.');
       }
     });
   }
 
-  processImageLabels() async {
+/*  processImageLabels() async {
     FirebaseVisionImage myImage = FirebaseVisionImage.fromFile(_image);
     ImageLabeler labeler = FirebaseVision.instance.imageLabeler();
     var _imageLabels = await labeler.processImage(myImage);
@@ -386,7 +381,7 @@ final picker=ImagePicker();
       });
     }
     writeimahelabel();
-  }
+  }*/
   void writeimahelabel() async{
     await storage.write(key: "label", value:strArr[1]);
     Fluttertoast.showToast(
@@ -400,4 +395,52 @@ final picker=ImagePicker();
 
 
   }
+}
+class Music {
+  final int id;
+  final String name, size, rating, duration, img;
+  bool favorite;
+
+  Music({
+    this.id,
+    this.rating,
+    this.size,
+    this.duration,
+    this.name,
+    this.img,
+    this.favorite,
+  });
+
+  factory Music.fromJson(Map<String, dynamic> jsonData) {
+    return Music(
+      id: jsonData['id'],
+      rating: jsonData['rating'],
+      size: jsonData['size'],
+      duration: jsonData['duration'],
+      name: jsonData['name'],
+      img: jsonData['img'],
+      favorite: false,
+    );
+  }
+
+  static Map<String, dynamic> toMap(Music music) => {
+    'id': music.id,
+    'rating': music.rating,
+    'size': music.size,
+    'duration': music.duration,
+    'name': music.name,
+    'img': music.img,
+    'favorite': music.favorite,
+  };
+
+  static String encode(List<Music> musics) => json.encode(
+    musics
+        .map<Map<String, dynamic>>((music) => Music.toMap(music))
+        .toList(),
+  );
+
+  static List<Music> decode(String musics) =>
+      (json.decode(musics) as List<dynamic>)
+          .map<Music>((item) => Music.fromJson(item))
+          .toList();
 }

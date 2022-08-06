@@ -1,5 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:awesome_dialog/awesome_dialog.dart';
+import 'package:dio/dio.dart';
 import 'package:path/path.dart';
 import 'package:blogapp/CustumWidget/shopservice.dart';
 import 'package:blogapp/Pages/HomePage.dart';
@@ -22,16 +24,22 @@ class Architect extends StatefulWidget {
 class _ArchitectState extends State<Architect> {
   final picker = ImagePicker();
   FlutterSecureStorage storage = FlutterSecureStorage();
-  File _image;
-
+  File _image,_pic;
+bool loading=false;
   chooseImage(ImageSource source) async {
     final image = await picker.getImage(source: source);
     setState(() {
       _image = File(image.path);
     });
   }
-
-  void uploadFileToServer(File imagePath) async {
+  chooseProfileImage(ImageSource source) async {
+    final image = await picker.getImage(source: source);
+    setState(() {
+      _pic = File(image.path);
+    });
+  }
+  Dio dio =Dio();
+  /*void uploadFileToServer(File imagePath) async {
     print("test");
     var request = new http.MultipartRequest("POST",
         Uri.parse('https://govi-piyasa-v-0-1.herokuapp.com/api/v1/architects'));
@@ -48,9 +56,39 @@ class _ArchitectState extends State<Architect> {
         }
       });
     });
-  }
+  }*/
+  createArchitect(businessName,email,contact,description,motto,File file,File pic) async {
+    String token = await storage.read(key: "token");
+    dio.options.contentType = 'application/json';
+    dio.options.headers["authorization"] = "Bearer ${token}";
+    print(token);
+    try {
 
-  postArchitect(description, businessName, email, contactNumber, motto, city,
+      String fileName=file.path.split('/').last;
+      String picName=file.path.split('/').last;
+      FormData formData=FormData.fromMap({
+        "businessName": businessName,
+        "email": email,
+        "contactNumber":contact,
+        "description":description,
+        "motto":motto,
+        "profilePicture": await MultipartFile.fromFile(pic.path, filename:picName),
+        "shopImages":await MultipartFile.fromFile(file.path, filename:fileName),
+      });
+      final response=await dio.post('https://govi-piyasa-v-0-1.herokuapp.com/api/v1/architects', data: formData);
+      print(response);
+      return response;
+    } on DioError catch (e) {
+      Fluttertoast.showToast(
+          msg: e.message,
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.BOTTOM,
+          backgroundColor: Colors.red,
+          textColor: Colors.white,
+          fontSize: 16.0);
+    }
+  }
+/*  postArchitect(description, businessName, email, contactNumber, motto,
       filePath) async {
     String fileName = basename(filePath.path);
     print("file base name:$fileName");
@@ -66,6 +104,7 @@ class _ArchitectState extends State<Architect> {
       "email": email,
       "contactNumber": contactNumber,
       "motto": motto,
+      "profilePicture":await MultipartFile.fromFile(filePath.path, filename:fileName),
     };
 
     http.Response response = await http.post(
@@ -78,7 +117,8 @@ class _ArchitectState extends State<Architect> {
     );
 
     print(response.body);
-  }
+
+  }*/
 
   final GlobalKey<FormState> _formkey = GlobalKey<FormState>();
   var businessName, description, token, motto, contact, email;
@@ -106,7 +146,7 @@ class _ArchitectState extends State<Architect> {
                   color: Color(0xFF545D68))),
         ),
         body: SingleChildScrollView(
-          child: Container(
+          child: loading==true?Center(child:CircularProgressIndicator()):Container(
             margin: const EdgeInsets.only(top: 5.0),
             padding: EdgeInsets.all(2.0),
             child: Column(
@@ -246,6 +286,48 @@ class _ArchitectState extends State<Architect> {
                         ),
                         SizedBox(height: 5.0),
                         Container(
+                            margin: const EdgeInsets.only(left: 10.0, right: 10.0),
+                            decoration:BoxDecoration(
+                                border:Border.all(color:Colors.grey,width:1),
+                                borderRadius:BorderRadius.circular(15)
+                            ),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                              children: [
+                                Container(
+                                  child: _image!=null
+                                      ?Container(
+                                    height: 50,
+                                    width:50,
+                                    decoration: BoxDecoration(
+                                      image:DecorationImage(
+                                        image:FileImage(_image),
+                                      ),
+                                    ),
+                                  ):Container(
+                                    height: 50,
+                                    width:50,
+                                    decoration: BoxDecoration(
+                                      color:Colors.grey,
+                                    ),
+                                  ),
+
+
+                                ),
+
+                                Container(child:Row(
+                                  children: [
+                                    IconButton(
+                                        onPressed:(){
+                                          chooseProfileImage(ImageSource.gallery);
+                                        }, icon: Icon(Icons.camera_alt_sharp) )
+                                  ],
+                                )),
+                              ],
+                            )
+                        ),
+                        SizedBox(height: 5.0),
+                        Container(
                           margin:
                               const EdgeInsets.only(left: 10.0, right: 10.0),
                           child: TextFormField(
@@ -281,21 +363,44 @@ class _ArchitectState extends State<Architect> {
                               borderRadius: BorderRadius.circular(20),
                             ),
                           ),
-                          onPressed: () {
+                          onPressed: ()async {
                             if (_formkey.currentState.validate()) {
-                              Navigator.push(
+                              setState(() {
+                                loading=true;
+                              });
+                              await Future.delayed(Duration(seconds: 4));
+                              createArchitect( businessName, email, contact,description, motto,_image,_image);
+                              //postArchitect(description, businessName, email, contact, motto,_image);
+                              setState(() {
+                                loading=false;
+                              });
+                              AwesomeDialog(
+                                context: context,
+                                dialogType: DialogType.SUCCES,
+                                headerAnimationLoop: false,
+                                animType: AnimType.BOTTOMSLIDE,
+                                title: 'Sucess',
+                                buttonsTextStyle: const TextStyle(color: Colors.black),
+                                showCloseIcon: false,
+
+                                btnOkOnPress: () {},
+                              ).show();
+                            /*  Navigator.push(
                                   context,
                                   MaterialPageRoute(
-                                      builder: (context) => Showitem()));
+                                      builder: (context) => Showitem()));*/
                             } else {
-                              Fluttertoast.showToast(
-                                msg: "Unsuccessfully",
-                                toastLength: Toast.LENGTH_SHORT,
-                                gravity: ToastGravity.BOTTOM,
-                                backgroundColor: Colors.red,
-                                textColor: Colors.white,
-                                fontSize: 16.0,
-                              );
+                              AwesomeDialog(
+                                context: context,
+                                dialogType: DialogType.ERROR,
+                                headerAnimationLoop: false,
+                                animType: AnimType.BOTTOMSLIDE,
+                                title: 'Sucess',
+                                buttonsTextStyle: const TextStyle(color: Colors.black),
+                                showCloseIcon: false,
+
+                                btnOkOnPress: () {},
+                              ).show();
                             }
                           },
                           child: Text("Create Architect shop",

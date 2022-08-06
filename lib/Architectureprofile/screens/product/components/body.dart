@@ -16,7 +16,7 @@ class Body extends StatelessWidget {
       child: Column(
         children: <Widget>[
          // SearchBox(onChanged: (value) {}),
-          CategoryList(),
+          //CategoryList(),
           SizedBox(height: kDefaultPadding / 2),
           Expanded(
             child: Stack(
@@ -37,7 +37,7 @@ class Body extends StatelessWidget {
                   itemCount: products.length,
                   itemBuilder: (context, index) => ProductCard(
                     itemIndex: index,
-                    product: products[index],
+                  /*  product: products[index],*/
                     press: () {
                       Navigator.push(
                         context,

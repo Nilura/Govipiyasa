@@ -51,7 +51,7 @@ class Itemdetails extends StatelessWidget {
                   ),
                   child: Column(
                       children: [
-                        SizedBox(height: 40.0,),
+                        SizedBox(height: 30.0,),
                     Positioned(
                       width: size.width,
                       top: padding,
@@ -80,7 +80,7 @@ class Itemdetails extends StatelessWidget {
                       ),
                     ),
                     SizedBox(
-                      height: 20.0,
+                      height: 10.0,
                     ),
                     GestureDetector(
                       onTap: (){
@@ -93,7 +93,7 @@ class Itemdetails extends StatelessWidget {
                         margin: EdgeInsets.all(20.0),
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(15.0),
-                          border: Border.all(width: 2,color:Colors.blue),
+
                           image: DecorationImage(
                             fit: BoxFit.fill,
                             image: NetworkImage(image),
@@ -147,11 +147,11 @@ class Itemdetails extends StatelessWidget {
                     SizedBox(
                       height: 10.0,
                     ),
-                    Text( text,
+                    Text( "Rs:"+price,
                         style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 25.0,
-                            fontWeight: FontWeight.w600
+                          color: Colors.black,
+                          fontSize: 20.0,
+                            fontWeight: FontWeight.bold
                         )),
                     GestureDetector(
                       child:Icon(Icons.share),
@@ -171,10 +171,10 @@ class Itemdetails extends StatelessWidget {
                                 borderRadius: BorderRadius.circular(15.0),
                                 side: BorderSide(color: Colors.black, width: 1),
                               ),
-                              margin: EdgeInsets.fromLTRB(0.0, 45.0, 0.0, 0.0),
+                              margin: EdgeInsets.fromLTRB(0.0, 10.0, 0.0, 0.0),
                               child: Container(
                                   width: 310.0,
-                                  height: 240.0,
+                                  height: 270.0,
                                   child: Padding(
                                     padding: EdgeInsets.all(10.0),
                                     child: Column(
@@ -222,7 +222,7 @@ class Itemdetails extends StatelessWidget {
                                             ),
 
                                             SizedBox(
-                                              width: 20.0,
+                                              width: 15.0,
                                             ),
                                             Column(
                                               mainAxisAlignment: MainAxisAlignment.center,

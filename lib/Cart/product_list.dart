@@ -28,7 +28,7 @@ class ProductListScreen extends StatefulWidget {
 class _ProductListScreenState extends State<ProductListScreen> {
 
   FlutterSecureStorage storage = FlutterSecureStorage();
-  addtoCart(title,category)async{
+  addtoCart(itemid,amount)async{
 
     String token = await storage.read(key: "token");
     print(token);
@@ -38,11 +38,11 @@ class _ProductListScreenState extends State<ProductListScreen> {
     };
 
     final body = {
-      "Title": title,
-      "Category": category,
+      "item":itemid,
+      "amount":amount,
     };
     http.post(
-      "https://govi-piyasa-v-0-1.herokuapp.com/api/v1/cart/",body:jsonEncode(body),
+      "https://govi-piyasa-v-0-1.herokuapp.com/api/v1/cartItems/",body:jsonEncode(body),
       headers: {
         "Content-Type": "application/json",
         'Authorization': 'Bearer $token',
@@ -86,6 +86,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
     'https://media.istockphoto.com/photos/cherry-trio-with-stem-and-leaf-picture-id157428769?s=612x612',
     'https://media.istockphoto.com/photos/single-whole-peach-fruit-with-leaf-and-slice-isolated-on-white-picture-id1151868959?s=612x612',
     'https://media.istockphoto.com/photos/fruit-background-picture-id529664572?s=612x612',
+    'https://media.istockphoto.com/photos/fruit-background-picture-id529664572?s=612x612',
   ];
 
   //String url = 'https://jsonplaceholder.typicode.com/users/';
@@ -118,10 +119,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
   Widget build(BuildContext context) {
     final cart = Provider.of<CartProvider>(context);
     return Scaffold(
-      floatingActionButton: FloatingActionButton(
-        // onPressed: openFilterDialog,
-        child: Icon(Icons.add),
-      ),
+
       appBar: AppBar(
         backgroundColor: Colors.white,
         toolbarHeight: 70,
@@ -170,23 +168,13 @@ class _ProductListScreenState extends State<ProductListScreen> {
                   MaterialPageRoute(builder: (context) => WishScreen()));
             },
             child: Center(
-              child: Badge(
-                showBadge: true,
-                badgeContent: Consumer<CartProvider1>(
-                  builder: (context, value, child) {
-                    return Text(value.getCounter().toString(),
-                        style: TextStyle(color: Colors.white));
-                  },
-                ),
-                animationType: BadgeAnimationType.fade,
-                animationDuration: Duration(milliseconds: 300),
-                child: Icon(
-                  Icons.dynamic_feed_rounded,
-                  color: Colors.black,
-                ),
+              child:Icon(
+                Icons.dynamic_feed_rounded,
+                color: Colors.black,
               ),
             ),
           ),
+          SizedBox(width: 5,),
           InkWell(
             onTap: () {
               Navigator.push(context,
@@ -220,10 +208,12 @@ class _ProductListScreenState extends State<ProductListScreen> {
                 itemCount: _itemsJson.length,
                 itemBuilder: (context, index) {
                   final item = _itemsJson[index];
+                  final qty = _itemsJson[index]['quantity'];
                   if (_itemsJson[index]['productName'] ==
                       "${searchitem}") {
                     return GestureDetector(
                       child: Card(
+                        margin:EdgeInsets.all(10.0),
                         child: Padding(
                           padding: const EdgeInsets.all(8.0),
                           child: Column(
@@ -342,18 +332,12 @@ class _ProductListScreenState extends State<ProductListScreen> {
                                                     context,
                                                     MaterialPageRoute(
                                                       builder: (context) => Shopview(
-                                                          id:
-                                                              '${item['shopId']['_id']}',
-                                                          text:
-                                                              '${item['shopId']['shopName']}',
-                                                          price:
-                                                              '${item['shopId']['email']}',
-                                                          image:
-                                                              'https://source.unsplash.com/random?sig=$index',
-                                                          description:
-                                                              '${item['shopId']['address']}',
-                                                          quantity:
-                                                              '${item['shopId']['rating']}',
+                                                          id: '${item['shopId']['_id']}',
+                                                          text:'${item['shopId']['shopName']}',
+                                                          price:'${item['shopId']['email']}',
+                                                          image:'https://source.unsplash.com/random?sig=$index',
+                                                          description:'${item['shopId']['address']}',
+                                                          quantity:'${item['shopId']['rating']}',
                                                           category:
                                                               '${item['categoryName']}',
                                                           itemCount:
@@ -372,6 +356,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
                                           alignment: Alignment.centerRight,
                                           child: InkWell(
                                             onTap: () {
+                                              addtoCart(item['_id'],1);
                                               print(index);
                                               print(index);
                                               print("${item['productName']}");
@@ -461,272 +446,256 @@ class _ProductListScreenState extends State<ProductListScreen> {
                         Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => Itemdetails(
-                                  text: '${item['productName']}',
-                                  price: '${item['price']}',
-                                  image: productImage[index].toString(),
-                                  description: '${item['description']}',
-                                  quantity: '${item['quantity']}',
-                                  category: '${item['categoryName']}'),
+                              builder: (context) => Itemdetails(text: '${item['productName']}', price: '${item['price']}', image: productImage[index].toString(), description: '${item['description']}', quantity: '${item['quantity']}', category: '${item['categoryName']}'),
                             ));
                       },
                     );
                   } else {
                      // return SizedBox.shrink();
-                    return GestureDetector(
-                      child: Card(
-                        child: Padding(
-                          padding: const EdgeInsets.all(5.0),
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Align(
-                                alignment: Alignment.topRight,
-                                child:   Container(
+                      return GestureDetector(
+                        child: Card(
+                          color:  index.isEven ? Colors.greenAccent : Colors.lightGreen,
+                          margin:EdgeInsets.all(10.0),
+                          elevation: 5,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(20),),
+                          child: Padding(
+                            padding: const EdgeInsets.all(10.0),
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Align(
+                                  alignment: Alignment.topRight,
+                                  child:   Container(
 
-                                  child: IconButton(
-                                    onPressed: () {
+                                    child: IconButton(
+                                      onPressed: () {
+                                        dbHelper1
+                                            .insert(Wish(
+                                            id: index,
+                                            productId:
+                                            index.toString(),
+                                            productName:
+                                            "${item['productName']}",
+                                            initialPrice:
+                                            item['price'],
+                                            productPrice:
+                                            item['price'],
+                                            quantity: 1,
+                                            unitTag:
+                                            productUnit[index]
+                                                .toString(),
+                                            image: productImage[index]
+                                                .toString()))
+                                            .then((value) {
+                                          cart.addTotalPrice(double.parse(
+                                              item['price'].toString()));
+                                          cart.addCounter();
 
-                                     dbHelper1
-                                          .insert(Wish(
-                                          id: index,
-                                          productId:
-                                          index.toString(),
-                                          productName:
-                                          "${item['productName']}",
-                                          initialPrice:
-                                          item['price'],
-                                          productPrice:
-                                          item['price'],
-                                          quantity: 1,
-                                          unitTag:
-                                          productUnit[index]
-                                              .toString(),
-                                          image: productImage[index]
-                                              .toString()))
-                                          .then((value) {
-                                        cart.addTotalPrice(double.parse(
-                                            item['price'].toString()));
-                                        cart.addCounter();
-
-                                        final snackBar = SnackBar(
-                                          backgroundColor: Colors.green,
-                                          content: Text(
-                                              'Product is added to wishlist'),
-                                          duration:
-                                          Duration(seconds: 1),
-                                        );
-
-                                        ScaffoldMessenger.of(context)
-                                            .showSnackBar(snackBar);
-                                      }).onError((error, stackTrace) {
-                                        print(
-                                            "error" + error.toString());
-                                        final snackBar = SnackBar(
-                                            backgroundColor: Colors.red,
+                                          final snackBar = SnackBar(
+                                            backgroundColor: Colors.green,
                                             content: Text(
-                                                'Product is already added in cart'),
+                                                'Product is added to wishlist'),
                                             duration:
-                                            Duration(seconds: 1));
+                                            Duration(seconds: 1),
+                                          );
 
-                                        ScaffoldMessenger.of(context)
-                                            .showSnackBar(snackBar);
-                                      });
-                                    },
-                                    icon: Icon(Icons.favorite,color: Colors.red,),
-                                  ),),
-                              ),
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.start,
-                                crossAxisAlignment: CrossAxisAlignment.center,
-                                mainAxisSize: MainAxisSize.max,
-                                children: [
+                                          ScaffoldMessenger.of(context)
+                                              .showSnackBar(snackBar);
+                                        }).onError((error, stackTrace) {
+                                          print(
+                                              "error" + error.toString());
+                                          final snackBar = SnackBar(
+                                              backgroundColor: Colors.red,
+                                              content: Text(
+                                                  'Product is already added in cart'),
+                                              duration:
+                                              Duration(seconds: 1));
 
-                                  Image(
-                                    height: 100,
-                                    width: 100,
-                                    image: NetworkImage(
-                                        productImage[index].toString()),
-                                  ),
-                                  SizedBox(
-                                    width: 10,
-                                  ),
+                                          ScaffoldMessenger.of(context)
+                                              .showSnackBar(snackBar);
+                                        });
+                                      },
+                                      icon: Icon(Icons.favorite,color: Colors.red,),
+                                    ),),
+                                ),
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.start,
+                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                  mainAxisSize: MainAxisSize.max,
+                                  children: [
 
-                                  Expanded(
-                                    child: Column(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.start,
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          "${item['productName']}",
-                                          style: TextStyle(
-                                            fontSize: 16,
-                                            fontFamily: 'Roboto',
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                        ),
-                                        SizedBox(
-                                          height: 5,
-                                        ),
-                                        Text(
-                                          "Rs${item['price']}",
-                                          style: TextStyle(
-                                              fontSize: 16,
-                                              fontWeight: FontWeight.w500),
-                                        ),
-                                        Text("${item['categoryName']}",
+                                    Image(
+                                      height: 100,
+                                      width: 100,
+                                      image: NetworkImage(
+                                          productImage[index].toString()),
+                                    ),
+                                    SizedBox(
+                                      width: 10,
+                                    ),
+
+                                    Expanded(
+                                      child: Column(
+                                        mainAxisAlignment:
+                                        MainAxisAlignment.start,
+                                        crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            "${item['productName']}",
                                             style: TextStyle(
-                                              color: Colors.blue,
-                                            )),
-                                        SizedBox(
-                                          height: 5,
-                                        ),
-                                        Container(
-                                          child: IconButton(
-                                              icon: Icon(
-                                                Icons.store,
-                                                size: 30,
-                                              ),
-                                              onPressed: () {
-                                                Navigator.push(
-                                                    context,
-                                                    MaterialPageRoute(
-                                                      builder: (context) => Shopview(
-                                                          id:
-                                                              '${item['shopId']['_id']}',
-                                                          text:
-                                                              '${item['shopId']['shopName']}',
-                                                          price:
-                                                              '${item['shopId']['email']}',
-                                                          image:
-                                                              'https://source.unsplash.com/random?sig=$index',
-                                                          description:
-                                                              '${item['shopId']['address']}',
-                                                          quantity:
-                                                              '${item['shopId']['rating']}',
-                                                          category:
-                                                              '${item['categoryName']}',
-                                                          itemCount:
-                                                              '${item['shopId']['itemCount']}',
-                                                          shopitems:
-                                                              '${item['shopId']['shopItems']}',
-                                                          latlang:
-                                                              '${item['shopId']['location']['coordinates'][0]}',
-                                                          longitude:
-                                                              '${item['shopId']['location']['coordinates'][1]}'),
-                                                    ));
-                                              }),
-                                        ),
+                                              fontSize: 16,
+                                              fontFamily: 'Roboto',
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                          SizedBox(
+                                            height: 5,
+                                          ),
+                                          Text(
+                                            "Rs${item['price']}",
+                                            style: TextStyle(
+                                                fontSize: 16,
+                                                fontWeight: FontWeight.w500),
+                                          ),
+                                          Text("${item['categoryName']}",
+                                              style: TextStyle(
+                                                color: Colors.blue,
+                                              )),
+                                          qty == 0
+                                              ? Text("Quantity:out of stock",
+                                              style: TextStyle(
+                                                color: Colors.red,
+                                              ))
+                                              : Text("${item['quantity']}"),
 
-                                        Align(
-                                          alignment: Alignment.centerRight,
-                                          child: InkWell(
-                                            onTap: () {
-                                              addtoCart("${item['productName']}",item['price']);
-                                              print(index);
-                                              print(index);
-                                              print("${item['productName']}");
-                                              print(productPrice[index]
-                                                  .toString());
-                                              print(item['price']);
-                                              print('1');
-                                              print(productUnit[index]
-                                                  .toString());
-                                              print(productImage[index]
-                                                  .toString());
+                                          SizedBox(
+                                            height: 5,
+                                          ),
+                                          Container(
+                                            child: IconButton(
+                                                icon: Icon(
+                                                  Icons.store,
+                                                  size: 30,
+                                                ),
+                                                onPressed: () {
+                                                  Navigator.push(
+                                                      context,
+                                                      MaterialPageRoute(
+                                                        builder: (context) => Shopview(id: '${item['shopId']['_id']}',
+                                                            text:'${item['shopId']['shopName']}',
+                                                            price:'${item['shopId']['email']}',
+                                                            image:'https://source.unsplash.com/random?sig=$index',
+                                                            description:'${item['shopId']['address']}',
+                                                            quantity:'${item['shopId']['rating']}',
+                                                            category:'${item['categoryName']}',
+                                                            itemCount:'${item['shopId']['itemCount']}',
+                                                            shopitems:'${item['shopId']['shopItems']}',
+                                                            latlang:'${item['shopId']['location']['coordinates'][0]}',
+                                                            longitude: '${item['shopId']['location']['coordinates'][1]}'),
+                                                      ));
+                                                }),
+                                          ),
 
-                                              dbHelper
-                                                  .insert(Cart(
-                                                      id: index,
-                                                      productId:
-                                                          index.toString(),
-                                                      productName:
-                                                          "${item['productName']}",
-                                                      initialPrice:
-                                                          item['price'],
-                                                      productPrice:
-                                                          item['price'],
-                                                      quantity: 1,
-                                                      unitTag:
-                                                          productUnit[index]
-                                                              .toString(),
-                                                      image: productImage[index]
-                                                          .toString()))
-                                                  .then((value) {
-                                                cart.addTotalPrice(double.parse(
-                                                    item['price'].toString()));
-                                                cart.addCounter();
+                                          Align(
+                                            alignment: Alignment.centerRight,
+                                            child: InkWell(
+                                              onTap: () {
+                                                addtoCart(item['_id'],1);
+                                                // addtoCart("${item['productName']}",item['price']);
+                                                print(index);
+                                                print(index);
+                                                print("${item['productName']}");
+                                                print(productPrice[index]
+                                                    .toString());
+                                                print(item['price']);
+                                                print('1');
+                                                print(productUnit[index]
+                                                    .toString());
+                                                print(productImage[index]
+                                                    .toString());
 
-                                                final snackBar = SnackBar(
-                                                  backgroundColor: Colors.green,
-                                                  content: Text(
-                                                      'Product is added to cart'),
-                                                  duration:
-                                                      Duration(seconds: 1),
-                                                );
+                                                dbHelper
+                                                    .insert(Cart(
+                                                    id: index,
+                                                    productId:
+                                                    index.toString(),
+                                                    productName:
+                                                    "${item['productName']}",
+                                                    initialPrice:
+                                                    item['price'],
+                                                    productPrice:
+                                                    item['price'],
+                                                    quantity: 1,
+                                                    unitTag:
+                                                    productUnit[index]
+                                                        .toString(),
+                                                    image: productImage[index]
+                                                        .toString()))
+                                                    .then((value) {
+                                                  cart.addTotalPrice(double.parse(
+                                                      item['price'].toString()));
+                                                  cart.addCounter();
 
-                                                ScaffoldMessenger.of(context)
-                                                    .showSnackBar(snackBar);
-                                              }).onError((error, stackTrace) {
-                                                print(
-                                                    "error" + error.toString());
-                                                final snackBar = SnackBar(
-                                                    backgroundColor: Colors.red,
+                                                  final snackBar = SnackBar(
+                                                    backgroundColor: Colors.green,
                                                     content: Text(
-                                                        'Product is already added in cart'),
+                                                        'Product is added to cart'),
                                                     duration:
-                                                        Duration(seconds: 1));
+                                                    Duration(seconds: 1),
+                                                  );
 
-                                                ScaffoldMessenger.of(context)
-                                                    .showSnackBar(snackBar);
-                                              });
-                                            },
-                                            child: Container(
-                                              height: 35,
-                                              width: 100,
-                                              decoration: BoxDecoration(
-                                                  color: Colors.green,
-                                                  borderRadius:
-                                                      BorderRadius.circular(5)),
-                                              child: const Center(
-                                                child: Text(
-                                                  'Add to cart',
-                                                  style: TextStyle(
-                                                      color: Colors.white),
+                                                  ScaffoldMessenger.of(context)
+                                                      .showSnackBar(snackBar);
+                                                }).onError((error, stackTrace) {
+                                                  print(
+                                                      "error" + error.toString());
+                                                  final snackBar = SnackBar(
+                                                      backgroundColor: Colors.red,
+                                                      content: Text(
+                                                          'Product is already added in cart'),
+                                                      duration:Duration(seconds: 1));
+
+                                                  ScaffoldMessenger.of(context)
+                                                      .showSnackBar(snackBar);
+                                                });
+                                              },
+                                              child: Container(
+                                                height: 35,
+                                                width: 100,
+                                                decoration: BoxDecoration(
+                                                    color: Colors.green,
+                                                    borderRadius:
+                                                    BorderRadius.circular(5)),
+                                                child: const Center(
+                                                  child: Text(
+                                                    'Add to cart',
+                                                    style: TextStyle(
+                                                        color: Colors.white),
+                                                  ),
                                                 ),
                                               ),
                                             ),
-                                          ),
-                                        ),
-
-
-                                      ],
+                                          ),],
+                                      ),
                                     ),
-                                  ),
 
-                                ],
-                              )
-                            ],
+                                  ],
+                                )
+                              ],
+                            ),
                           ),
                         ),
-                      ),
-                      onTap: () {
-                        Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => Itemdetails(
-                                  text: '${item['productName']}',
-                                  price: '${item['price']}',
-                                  image: productImage[index].toString(),
-                                  description: '${item['description']}',
-                                  quantity: '${item['quantity']}',
-                                  category: '${item['categoryName']}'),
-                            ));
-                      },
-                    );
+                        onTap: () {
+                          Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => Itemdetails(text: '${item['productName']}', price: '${item['price']}', image: productImage[index].toString(), description: '${item['description']}', quantity: '${item['quantity']}', category: '${item['categoryName']}'),
+                              ));
+                        },
+                      );
                   }
                 }),
           ),

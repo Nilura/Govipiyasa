@@ -84,7 +84,7 @@ class _expertState extends State<expert> {
                   Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => Architectureview(id:"${item['_id']}",businessName:"${item['businessName']}",description:"${item['description']}",contactNumber:"${item['contactNumber']}",motto:"${item['motto']}",email:"${item['email']}",rating:"${item['rating']}",image:"https://source.unsplash.com/random?sig=$index"),
+                        builder: (context) => Architectureview(id:"${item['_id']}",businessName:"${item['businessName']}",description:"${item['description']}",contactNumber:"${item['contactNumber']}",motto:"${item['motto']}",email:"${item['email']}",rating:"${item['rating']}",appointmentSlots:item['appointmentSlots'],projects:item['appointmentSlots'], services:item['appointmentSlots'], archiectReviews:item['appointmentSlots'] ,image:"https://source.unsplash.com/random?sig=$index"),
                       ));
                 },
               ),
@@ -173,7 +173,7 @@ class _expertState extends State<expert> {
                 Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => Architectureview(id:"${item['_id']}",businessName:"${item['businessName']}",description:"${item['description']}",contactNumber:"${item['contactNumber']}",motto:"${item['motto']}",email:"${item['email']}",rating:"${item['rating']}",image:"https://source.unsplash.com/random?sig=$index"),
+                      builder: (context) => Architectureview(id:"${item['_id']}",businessName:"${item['businessName']}",description:"${item['description']}",contactNumber:"${item['contactNumber']}",motto:"${item['motto']}",email:"${item['email']}",rating:"${item['rating']}",appointmentSlots:item['appointmentSlots'],projects:item['appointmentSlots'], services:item['appointmentSlots'], archiectReviews:item['appointmentSlots'] ,image:"https://source.unsplash.com/random?sig=$index"),
                     ));
 
               },

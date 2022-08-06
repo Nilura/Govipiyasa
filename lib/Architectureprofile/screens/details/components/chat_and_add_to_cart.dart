@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../AppointmentCalender.dart';
 import '../../../constants.dart';
 
 class ChatAndAddToCart extends StatelessWidget {
@@ -23,7 +24,12 @@ class ChatAndAddToCart extends StatelessWidget {
         children: <Widget>[
 
           FlatButton.icon(
-            onPressed: () {},
+            onPressed: () {
+              Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => Calenderview()));
+            },
             icon:  Icon(Icons.auto_awesome_rounded , color: Colors.green),
             label: Text(
               "Make Appointment",

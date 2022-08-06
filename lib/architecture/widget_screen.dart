@@ -95,7 +95,7 @@ class _WidgetScreenState extends State<WidgetScreen> {
                           MaterialPageRoute(builder: (context) =>Website1()));
                     },
                   ),
-                  GestureDetector(
+               /*   GestureDetector(
                     child: Container(
                       height: 120.0,
 
@@ -133,7 +133,7 @@ class _WidgetScreenState extends State<WidgetScreen> {
                       Navigator.push(context,
                           MaterialPageRoute(builder: (context) =>Delivery()));
                     },
-                  ),
+                  ),*/
 
                 ],
               ),

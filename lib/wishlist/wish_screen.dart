@@ -34,7 +34,7 @@ class _WishScreenState extends State<WishScreen> {
             child: Badge(
               badgeContent: Consumer<CartProvider1>(
                 builder: (context, value , child){
-                  return Text(value.getCounter().toString(),style: TextStyle(color: Colors.white));
+                  return Text(value.getCounter1().toString(),style: TextStyle(color: Colors.white));
                 },
 
               ),

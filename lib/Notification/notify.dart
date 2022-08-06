@@ -1,11 +1,12 @@
 import 'dart:convert';
 
 import 'package:blogapp/Notification/viewnotification.dart';
+
 import 'package:flutter/widgets.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:http/http.dart' as http;
-import 'package:firebase_messaging/firebase_messaging.dart';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart';
@@ -88,7 +89,7 @@ class _NotifyState extends State<Notify> {
 
 
   }
-  FirebaseMessaging _firebaseMessaging = FirebaseMessaging();
+  //FirebaseMessaging _firebaseMessaging = FirebaseMessaging();
   @override
   void initState() {
     // TODO: implement initState
@@ -98,7 +99,7 @@ class _NotifyState extends State<Notify> {
     fetchPosts();
     super.initState();
 
-    _firebaseMessaging.configure(
+/*    _firebaseMessaging.configure(
       onMessage: (message) async{
         setState(() {
           messageTitle = message["notification"]["title"];
@@ -113,7 +114,7 @@ class _NotifyState extends State<Notify> {
         });
 
       },
-    );
+    );*/
   }
   Future<Null> refreshList2() async {
     await Future.delayed(Duration(seconds: 3));
@@ -133,20 +134,7 @@ class _NotifyState extends State<Notify> {
       ),
       body:Column(
         children: [
-          Container(child:Card(
-            elevation: 3,
 
-            child: ListTile(
-              title:  Text(
-                notificationAlert,
-              ),
-              subtitle:   Text(
-                messageTitle,
-                style: Theme.of(context).textTheme.headline4,
-              ),
-            ),
-          ),
-          ),
           Container(child:Text("Private Messages",style: TextStyle(fontSize:25,fontFamily: 'Roboto',fontWeight: FontWeight.bold),)),
           Expanded(child:
           Container(
@@ -160,7 +148,7 @@ class _NotifyState extends State<Notify> {
                     return Container(
                       margin: const EdgeInsets.all(10.0),
                       decoration: BoxDecoration(
-                        border: Border.all(color: Colors.blueAccent,width: 3),
+                        border: Border.all(color: Colors.blueAccent,width: 1),
                         borderRadius: BorderRadius.all(Radius.circular(
                             5.0) //                 <--- border radius here
                         ),
@@ -168,7 +156,7 @@ class _NotifyState extends State<Notify> {
                       child: ListTile(
                         title: Text("${post['Title']}",   style: TextStyle(
                             fontFamily: 'Varela',
-                            fontSize: 15.0,
+                            fontSize: 25.0,
                             color: Colors.red)),
 
                         subtitle: Column(
@@ -188,8 +176,22 @@ class _NotifyState extends State<Notify> {
             ),
           )
           ),
-          Container(child:Text("Public Messages",style: TextStyle(fontSize:25 ,fontFamily: 'Roboto',fontWeight: FontWeight.bold),),),
-          Expanded(child:
+          Container(child:Card(
+            elevation: 3,
+
+            child: ListTile(
+              title:  Text(
+                notificationAlert,
+              ),
+              subtitle:   Text(
+                messageTitle,
+                style: Theme.of(context).textTheme.headline4,
+              ),
+            ),
+          ),
+          ),
+         // Container(child:Text("Public Messages",style: TextStyle(fontSize:25 ,fontFamily: 'Roboto',fontWeight: FontWeight.bold),),),
+  /*        Expanded(child:
           Container(
             child: RefreshIndicator(
               onRefresh: refreshList2,
@@ -204,6 +206,7 @@ class _NotifyState extends State<Notify> {
                         ));
                       },
                       child:   Container(
+
                         margin: const EdgeInsets.all(10.0),
                         decoration: BoxDecoration(
                           border: Border.all(color: Colors.blueAccent),
@@ -236,7 +239,7 @@ class _NotifyState extends State<Notify> {
                   }),
             ),
           )
-          ),
+          ),*/
         ],
       )
     );

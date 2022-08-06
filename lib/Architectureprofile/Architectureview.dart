@@ -1,14 +1,15 @@
 import 'dart:convert';
 
 import 'package:animated_text_kit/animated_text_kit.dart';
-import 'package:blogapp/Architectureprofile/screens/details/components/chat_and_add_to_cart.dart';
 import 'package:blogapp/Architectureprofile/screens/details/components/list_of_colors.dart';
 import 'package:blogapp/assets/my_flutter_app_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-
+import 'package:http/http.dart';
+import 'package:showcaseview/showcaseview.dart';
+import 'AppointmentCalender.dart';
 import 'constants.dart';
 import 'package:http/http.dart' as http;
 import 'package:url_launcher/url_launcher.dart';
@@ -22,22 +23,32 @@ class Architectureview extends StatefulWidget {
   final String image;
   final String rating;
   final String email;
+  final List appointmentSlots;
+  final List projects;
+  final List services;
+  final List archiectReviews;
 
-  Architectureview(
-      {this.id,
-        this.businessName,
-      this.description,
-      this.contactNumber,
-      this.motto,
-        this.email,
-        this.rating,
-      this.image});
+  Architectureview({
+    this.id,
+    this.businessName,
+    this.description,
+    this.contactNumber,
+    this.motto,
+    this.email,
+    this.rating,
+    this.appointmentSlots,
+    this.projects,
+    this.services,
+    this.archiectReviews,
+    this.image,
+  });
 
   @override
   State<Architectureview> createState() => _ArchitectureviewState();
 }
 
 class _ArchitectureviewState extends State<Architectureview> {
+  GlobalKey _one = GlobalKey();
   FlutterSecureStorage storage = FlutterSecureStorage();
   final _formKey = GlobalKey<FormState>();
   final myController = TextEditingController();
@@ -49,27 +60,36 @@ class _ArchitectureviewState extends State<Architectureview> {
     Colors.red,
   ];
 
+  var _awardsitem = [];
+  void fetchAwards(id) async {
+    final url = "https://govi-piyasa-v-0-1.herokuapp.com/api/v1/architects/$id";
+    try {
+      final response = await get(Uri.parse(url));
+      final jsonData = jsonDecode(response.body)['data'] as List;
+      setState(() {
+        _awardsitem = jsonData;
+      });
+    } catch (err) {}
+  }
+
   void lanchwhatsapp({@required number, @required message}) async {
     String url = "whatsapp://send?phone=$number&text=$message";
     await canLaunch(url) ? launch(url) : print("can't open whatsapp");
   }
-  addrate(String rate,String id)async{
 
+  addrate(String rate, String id) async {
     String token = await storage.read(key: "token");
     print(token);
     print(id);
     print(rate);
-    final body = {
-      "rating": rate,
-      "architectId":id
-    };
+    final body = {"rating": rate, "architectId": id};
     http.post(
-      "https://govi-piyasa-v-0-1.herokuapp.com/api/v1/ratings",body:jsonEncode(body),
+      "https://govi-piyasa-v-0-1.herokuapp.com/api/v1/ratings",
+      body: jsonEncode(body),
       headers: {
         "Content-Type": "application/json",
         'Authorization': 'Bearer $token',
       },
-
     ).then((response) {
       if (response.statusCode == 200) {
         print(json.decode(response.body));
@@ -78,34 +98,32 @@ class _ArchitectureviewState extends State<Architectureview> {
     });
   }
 
-  addreview(String review,String id) async{
-
+  addreview(String review, String id) async {
     String token = await storage.read(key: "token");
     print(token);
     print(id);
     print(review);
-    final body = {
-      "review": review,
-      "architectId":id
-    };
+    final body = {"review": review, "architectId": id};
     http.post(
-      "https://govi-piyasa-v-0-1.herokuapp.com/api/v1/reviews",body:jsonEncode(body),
+      "https://govi-piyasa-v-0-1.herokuapp.com/api/v1/reviews",
+      body: jsonEncode(body),
       headers: {
         "Content-Type": "application/json",
         'Authorization': 'Bearer $token',
       },
-
     ).then((response) {
       if (response.statusCode == 200) {
         print(json.decode(response.body));
-        // Do the rest of job here
+
       }
     });
   }
-  static const colorizeTextStyle = TextStyle(
-    fontSize: 50.0,
-    fontFamily: 'Horizon',
-  );
+@override
+  void initState() {
+    // TODO: implement initState
+  fetchAwards(widget.id);
+    super.initState();
+  }
   var selectedCard = 'WEIGHT';
 
   @override
@@ -132,6 +150,7 @@ class _ArchitectureviewState extends State<Architectureview> {
           ],
         ),
         actions: <Widget>[
+
           IconButton(
             icon: Icon(Icons.architecture, color: Colors.green),
             onPressed: () {},
@@ -172,14 +191,13 @@ class _ArchitectureviewState extends State<Architectureview> {
                   ),
                   ListOfColors(),
                   Center(
-                    child:Column(
-                        children:[
-                        Text(widget.email),
-                      Text(widget.rating.toString(),style: TextStyle(
-                                color:Colors.black)),
-                        ]
+                    child: Column(children: [
 
-                  ),),
+                      Text(widget.email),
+                      Text(widget.rating.toString(),
+                          style: TextStyle(color: Colors.black)),
+                    ]),
+                  ),
                   Center(
                     child: Column(
                       children: [
@@ -194,8 +212,8 @@ class _ArchitectureviewState extends State<Architectureview> {
                                     message: "hello");
                               },
                             ),
-
-                            buildRating1(double.parse(widget.rating.toString())),
+                            buildRating1(
+                                double.parse(widget.rating.toString())),
                             GestureDetector(
                               child: Icon(Icons.call),
                               onTap: () {
@@ -204,6 +222,34 @@ class _ArchitectureviewState extends State<Architectureview> {
                               },
                             ),
                           ],
+                        ),
+                        Container(
+                          margin: EdgeInsets.all(kDefaultPadding),
+                          padding: EdgeInsets.symmetric(
+                            horizontal: kDefaultPadding,
+                            vertical: kDefaultPadding / 2,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Color(0xFFFCBF1E),
+                            borderRadius: BorderRadius.circular(30),
+                          ),
+                          child: Row(
+                            children: <Widget>[
+                              FlatButton.icon(
+                                onPressed: () {
+                                  Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                          builder: (context) => Calenderview(appointmentSlots:widget.appointmentSlots)));
+                                },
+                                icon:  Icon(Icons.auto_awesome_rounded , color: Colors.green),
+                                label: Text(
+                                  "Make Appointment",
+                                  style: TextStyle(color: Colors.black,fontSize: 20,fontWeight: FontWeight.bold),
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                         Padding(
                           padding: const EdgeInsets.symmetric(
@@ -249,106 +295,197 @@ class _ArchitectureviewState extends State<Architectureview> {
                 ],
               ),
             ),
-            SizedBox(height: 10,),
+
+            SizedBox(
+              height: 10,
+            ),
             Container(
-                child:Row(
+                child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children:[
-                OutlinedButton(
-                  style:OutlinedButton.styleFrom(
-                    padding:const EdgeInsets.symmetric(horizontal: 40),
-                    shape:RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(20),
-                    ),),  onPressed: () => showRating(),
-                  child:Text("Rate Us",style:TextStyle(
-                    fontSize: 16,
-                    letterSpacing: 2.2,
-                    color:Colors.red,
-                  )),
-
-                ),
-                OutlinedButton(
-                  style:OutlinedButton.styleFrom(
-                    padding:const EdgeInsets.symmetric(horizontal: 40),
-                    shape:RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(20),
-                    ),),  onPressed: () => showReview(widget.id),
-                  child:Text("Review Us",style:TextStyle(
-                    fontSize: 16,
-                    letterSpacing: 2.2,
-                    color:Colors.red,
-                  )),
-
-                ),
-              ]
-            )),
-
-        Center(
-          child: SizedBox(
-            child: DefaultTextStyle(
-              style: const TextStyle(
-                fontSize: 35,
-                color: Colors.black,
-                shadows: [
-                  Shadow(
-                    blurRadius: 7.0,
-                    color: Colors.blue,
-                    offset: Offset(0, 0),
+                    children: [
+                  OutlinedButton(
+                    style: OutlinedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(horizontal: 40),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                    ),
+                    onPressed: () => showRating(),
+                    child: Text("Rate Us",
+                        style: TextStyle(
+                          fontSize: 16,
+                          letterSpacing: 2.2,
+                          color: Colors.red,
+                        )),
                   ),
-                ],
-              ),
-              child: AnimatedTextKit(
-                repeatForever: true,
-                animatedTexts: [
-                  FlickerAnimatedText('Projects'),
-
-                ],
-                onTap: () {
-                  print("Tap Event");
-                },
+                  OutlinedButton(
+                    style: OutlinedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(horizontal: 40),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                    ),
+                    onPressed: () => showReview(widget.id),
+                    child: Text("Review Us",
+                        style: TextStyle(
+                          fontSize: 16,
+                          letterSpacing: 2.2,
+                          color: Colors.red,
+                        )),
+                  ),
+                ])),
+            Center(
+              child: SizedBox(
+                child:DefaultTextStyle(
+                  style: const TextStyle(
+                    fontSize: 20.0,
+                    color:Colors.blue
+                  ),
+                  child: AnimatedTextKit(
+                    animatedTexts: [
+                      WavyAnimatedText('Projects'),
+                      WavyAnimatedText('Services'),
+                    ],
+                    isRepeatingAnimation: true,
+                    onTap: () {
+                      print("Tap Event");
+                    },
+                  ),
+                ),
               ),
             ),
-          ),
-        ),
 
-            SizedBox(height: 10,),
+            SizedBox(
+              height: 10,
+            ),
             Container(
                 height: 150.0,
-                child: ListView(
+                child: ListView.builder(
+                  itemCount: _awardsitem.length,
                   scrollDirection: Axis.horizontal,
-                  children: <Widget>[
-                    _buildInfoCard('WEIGHT', '300', 'G'),
-                    SizedBox(width: 10.0),
-                    _buildInfoCard('CALORIES', '267', 'CAL'),
-                    SizedBox(width: 10.0),
-                    _buildInfoCard('VITAMINS', 'A, B6', 'VIT'),
-                    SizedBox(width: 10.0),
-                    _buildInfoCard('AVAIL', 'NO', 'AV')
-                  ],
+                    itemBuilder: (BuildContext context, int index){
+                    return  _buildInfoCard('WEIGHT', '${widget.projects.length}', 'G');
+                    }
+
+
                 )),
+           Container(child:Center(child:Text("Awards",style: TextStyle(
+           color: Colors.black,
+           fontSize: 25.0,
+           fontWeight: FontWeight.bold,
+           )))),
             Container(
-              height: 150,
-              width: 350,
+              height: 200,
+              decoration: BoxDecoration(
+                border: Border.all(color: Colors.blueAccent),
+                borderRadius: BorderRadius.only(
+                  topLeft: Radius.circular(22),
+                  topRight: Radius.circular(22),
+                  bottomLeft: Radius.circular(22),
+                  bottomRight: Radius.circular(22),
+                ),
+              ),
+              margin: EdgeInsets.fromLTRB(10, 10, 10, 10),
               child: ListView.builder(
-                  itemCount: 5,
+                  itemCount: widget.projects.length,
                   itemBuilder: (BuildContext context, int index) {
-                    return SizedBox(
-                      height: 150,
-                      child: Card(
-                          child: ListTile(
-                            title: Container(
+                    return Container(
+                      margin: EdgeInsets.fromLTRB(10, 0, 10, 0),
+
+                      height: 160,
+                      child: InkWell(
+                        onTap: (){},
+                        child: Stack(
+                          alignment: Alignment.bottomCenter,
+                          children: <Widget>[
+                            // Those are our background
+                            Container(
+                              height: 116,
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(22),
+                                color: index.isEven ? kBlueColor : kSecondaryColor,
+                                boxShadow: [kDefaultShadow],
+                              ),
+                              child: Container(
+                                margin: EdgeInsets.only(right: 10),
                                 decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(10),
-                                    image: DecorationImage(
-                                        image: NetworkImage("fgg"),
-                                        fit: BoxFit.cover)),
-                                height: 280.0,
-                                width: 100.0),
-                            // title: Text(widget.docs[index]['user'].toString())),
-                          )),
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(22),
+                                ),
+                              ),
+                            ),
+                            // our product image
+                            Positioned(
+                              top: 20,
+                              right: 0,
+                              child: Hero(
+                                tag: 'mk',
+                                child: Container(
+                                  padding: EdgeInsets.symmetric(horizontal: kDefaultPadding),
+                                  height: 100,
+                                  // image is square but we add extra 20 + 20 padding thats why width is 200
+                                  width: 180,
+                                    decoration: BoxDecoration(
+                                        borderRadius: BorderRadius.circular(10),
+                                        image: DecorationImage(
+                                            image: NetworkImage(
+                                                "https://source.unsplash.com/random?sig=$index"),
+                                            fit: BoxFit.cover)),
+                                  ),
+                                ),
+                              ),
+
+                            // Product title and price
+                            Positioned(
+                              bottom: 0,
+                              left: 0,
+                              child: SizedBox(
+                                height: 106,
+                                // our image take 200 width, thats why we set out total width - 200
+                                width:200,
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: <Widget>[
+                                    Spacer(),
+                                    Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: kDefaultPadding),
+                                      child: Text(
+                                        "",
+                                        style: Theme.of(context).textTheme.button,
+                                      ),
+                                    ),
+                                    // it use the available space
+                                    Spacer(),
+                                    Container(
+                                      padding: EdgeInsets.symmetric(
+                                        horizontal: kDefaultPadding * 1.5, // 30 padding
+                                        vertical: kDefaultPadding / 4, // 5 top and bottom
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: kSecondaryColor,
+                                        borderRadius: BorderRadius.only(
+                                          bottomLeft: Radius.circular(22),
+                                          topRight: Radius.circular(22),
+                                        ),
+                                      ),
+                                      child: Text(
+                                        "\$",
+                                        style: Theme.of(context).textTheme.button,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
                     );
-                  }),),
-            ChatAndAddToCart(),
+                  }),
+            ),
+
+
           ],
         ),
       ),
@@ -361,6 +498,7 @@ class _ArchitectureviewState extends State<Architectureview> {
           selectCard(cardTitle);
         },
         child: AnimatedContainer(
+          margin: EdgeInsets.all(5),
             duration: Duration(milliseconds: 500),
             curve: Curves.easeIn,
             decoration: BoxDecoration(
@@ -423,134 +561,133 @@ class _ArchitectureviewState extends State<Architectureview> {
       selectedCard = cardTitle;
     });
   }
-  void showRating() => showDialog(
-    context: context,
-    builder: (context) => AlertDialog(
-      title: Text('Rate this Product'),
-      content: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text('Please leave a star rating',
-                style: TextStyle(fontSize: 20)),
-            SizedBox(
-              height: 5.0,
-            ),
-            Row(
-              children: [
-                Text("$rating"),
-                buildRating(),
-              ],
-            )
-          ]),
-      actions: [
-        TextButton(
-            onPressed: ()async {
 
-              addrate(rating.toString(),widget.id);
-              await Future.delayed(Duration(seconds: 3));
-              Navigator.pop(context);
-              Fluttertoast.showToast(
-                msg: "rating added successfully",
-                toastLength: Toast.LENGTH_SHORT,
-                gravity: ToastGravity.BOTTOM,
-                backgroundColor: Colors.red,
-                textColor: Colors.white,
-                fontSize: 16.0,
-              );
-            },
-            child: Text('Ok', style: TextStyle(fontSize: 20))),
-        TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-            },
-            child: Text('Cancel', style: TextStyle(fontSize: 20)))
-      ],
-    ),
-  );
+  void showRating() => showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: Text('Rate this Product'),
+          content: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text('Please leave a star rating',
+                    style: TextStyle(fontSize: 20)),
+                SizedBox(
+                  height: 5.0,
+                ),
+                Row(
+                  children: [
+                    Text("$rating"),
+                    buildRating(),
+                  ],
+                )
+              ]),
+          actions: [
+            TextButton(
+                onPressed: () async {
+                  addrate(rating.toString(), widget.id);
+                  await Future.delayed(Duration(seconds: 3));
+                  Navigator.pop(context);
+                  Fluttertoast.showToast(
+                    msg: "rating added successfully",
+                    toastLength: Toast.LENGTH_SHORT,
+                    gravity: ToastGravity.BOTTOM,
+                    backgroundColor: Colors.red,
+                    textColor: Colors.white,
+                    fontSize: 16.0,
+                  );
+                },
+                child: Text('Ok', style: TextStyle(fontSize: 20))),
+            TextButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                },
+                child: Text('Cancel', style: TextStyle(fontSize: 20)))
+          ],
+        ),
+      );
 
   void showReview(id) => showDialog(
-    context: context,
-    builder: (context) => AlertDialog(
-      title: Text('Review this Product'),
-      content: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Form(
-              key: _formKey,
-              child: Column(
-                children: <Widget>[
-                  TextFormField(
-
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Please enter some text';
-                      }
-                      return null;
-                    },
-                    controller: myController,
-                    decoration: InputDecoration(
-                      border: OutlineInputBorder(),
-                      hintText: 'Review',
-                    ),
+        context: context,
+        builder: (context) => AlertDialog(
+          title: Text('Review this Product'),
+          content: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Form(
+                  key: _formKey,
+                  child: Column(
+                    children: <Widget>[
+                      TextFormField(
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Please enter some text';
+                          }
+                          return null;
+                        },
+                        controller: myController,
+                        decoration: InputDecoration(
+                          border: OutlineInputBorder(),
+                          hintText: 'Review',
+                        ),
+                      ),
+                    ],
                   ),
-                ],
-              ),
-            ),
-            SizedBox(
-              height: 5.0,
-            ),
+                ),
+                SizedBox(
+                  height: 5.0,
+                ),
+              ]),
+          actions: [
+            TextButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                },
+                child: Text('Cancel', style: TextStyle(fontSize: 20))),
+            TextButton(
+                onPressed: () async {
+                  if (_formKey.currentState.validate()) {
+                    addreview(myController.text, id);
 
-          ]),
-      actions: [
-        TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-            },
-            child: Text('Cancel', style: TextStyle(fontSize: 20))),
-        TextButton(
-            onPressed: () async{
-              if (_formKey.currentState.validate()) {
-                addreview(myController.text,id);
+                    await Future.delayed(Duration(seconds: 3));
+                    myController.clear();
+                    Navigator.pop(context);
+                    Fluttertoast.showToast(
+                      msg: "review added successfully",
+                      toastLength: Toast.LENGTH_SHORT,
+                      gravity: ToastGravity.BOTTOM,
+                      backgroundColor: Colors.red,
+                      textColor: Colors.white,
+                      fontSize: 16.0,
+                    );
+                  }
+                },
+                child: Text('Ok', style: TextStyle(fontSize: 20)))
+          ],
+        ),
+      );
 
-                await Future.delayed(Duration(seconds: 3));
-                myController.clear();
-                Navigator.pop(context);
-                Fluttertoast.showToast(
-                  msg: "review added successfully",
-                  toastLength: Toast.LENGTH_SHORT,
-                  gravity: ToastGravity.BOTTOM,
-                  backgroundColor: Colors.red,
-                  textColor: Colors.white,
-                  fontSize: 16.0,
-                );
-              }
-
-            },
-            child: Text('Ok', style: TextStyle(fontSize: 20)))
-      ],
-    ),
-  );
   Widget buildRating1(rating) => RatingBar.builder(
-    minRating: 1,
-    itemSize: 18,
-    initialRating: rating,
-    itemPadding: EdgeInsets.symmetric(horizontal: 4),
-    itemBuilder: (context, _) => Icon(Icons.star, color: Colors.amber),
-    updateOnDrag: false,
-    onRatingUpdate: (rating) => setState(() {
-      this.rating = rating;
-    }),
-  );
+        minRating: 1,
+        itemSize: 18,
+        initialRating: rating,
+        itemPadding: EdgeInsets.symmetric(horizontal: 4),
+        itemBuilder: (context, _) => Icon(Icons.star, color: Colors.amber),
+        updateOnDrag: false,
+        onRatingUpdate: (rating) => setState(() {
+          this.rating = rating;
+        }),
+      );
+
   Widget buildRating() => RatingBar.builder(
-    minRating: 1,
-    itemSize: 18,
-    itemPadding: EdgeInsets.symmetric(horizontal: 4),
-    itemBuilder: (context, _) => Icon(Icons.star, color: Colors.amber),
-    updateOnDrag: false,
-    onRatingUpdate: (rating) => setState(() {
-      this.rating = rating;
-    }),
-  );
+        minRating: 1,
+        itemSize: 18,
+        itemPadding: EdgeInsets.symmetric(horizontal: 4),
+        itemBuilder: (context, _) => Icon(Icons.star, color: Colors.amber),
+        updateOnDrag: false,
+        onRatingUpdate: (rating) => setState(() {
+          this.rating = rating;
+        }),
+      );
 }
